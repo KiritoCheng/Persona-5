@@ -1,0 +1,784 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Persona 5 UI Interactive Preview</title>
+  <style>
+    :root {
+      --p5-red: #e60012;
+      --p5-dark-red: #8a000b;
+      --p5-black: #0a0a0c;
+      --p5-white: #f8f8f8;
+      --p5-yellow: #ffe600;
+      --ease-overshoot: cubic-bezier(0.22, 1.56, 0.36, 1);
+      --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      width: 100%;
+      background-color: var(--p5-black);
+      color: var(--p5-white);
+      font-family: "Arial Black", "Impact", "PingFang SC", "Microsoft YaHei", sans-serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      position: relative;
+      user-select: none;
+    }
+
+    /* 背景动态波普几何与半调网点 */
+    .bg-stage {
+      position: fixed;
+      inset: 0;
+      z-index: 0;
+      overflow: hidden;
+      pointer-events: none;
+    }
+
+    .bg-slash-red {
+      position: absolute;
+      top: -20%;
+      right: -15%;
+      width: 75vw;
+      height: 140vh;
+      background: var(--p5-red);
+      transform: rotate(-16deg);
+      transform-origin: center;
+      transition: transform 0.45s var(--ease-overshoot);
+    }
+
+    .bg-slash-black {
+      position: absolute;
+      bottom: -30%;
+      left: -10%;
+      width: 85vw;
+      height: 75vh;
+      background: var(--p5-black);
+      transform: rotate(-8deg);
+      border-top: 6px solid var(--p5-white);
+      transition: transform 0.45s var(--ease-overshoot);
+    }
+
+    .bg-halftone {
+      position: absolute;
+      inset: 0;
+      background-image: radial-gradient(rgba(0, 0, 0, 0.35) 2px, transparent 2px);
+      background-size: 12px 12px;
+      opacity: 0.75;
+    }
+
+    .bg-stars {
+      position: absolute;
+      inset: 0;
+      opacity: 0.14;
+      background-image:
+        radial-gradient(circle at 20% 30%, #fff 2px, transparent 3px),
+        radial-gradient(circle at 80% 20%, #fff 3px, transparent 4px),
+        radial-gradient(circle at 65% 75%, #fff 2px, transparent 3px),
+        radial-gradient(circle at 15% 80%, #fff 4px, transparent 5px);
+      background-size: 260px 260px;
+    }
+
+    /* 点击爆发时的全屏斜切闪光遮罩 */
+    .flash-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 40;
+      pointer-events: none;
+      opacity: 0;
+      background: var(--p5-white);
+      clip-path: polygon(0 35%, 100% 10%, 100% 65%, 0 90%);
+      transform: scaleY(0.1) skewY(-8deg);
+    }
+
+    .flash-overlay.active {
+      animation: p5SlashFlash 0.42s var(--ease-snap) forwards;
+    }
+
+    @keyframes p5SlashFlash {
+      0% {
+        opacity: 0.95;
+        transform: scaleY(0.15) skewY(-8deg);
+        background: var(--p5-white);
+      }
+      35% {
+        opacity: 0.9;
+        transform: scaleY(1.35) skewY(-8deg);
+        background: var(--p5-red);
+      }
+      100% {
+        opacity: 0;
+        transform: scaleY(1.8) skewY(-8deg);
+      }
+    }
+
+    /* 顶部状态与控制栏 */
+    .top-bar {
+      position: relative;
+      z-index: 20;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      padding: 18px 24px;
+      gap: 12px;
+    }
+
+    .badge-title {
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 8px 18px;
+      font-size: clamp(13px, 2vw, 16px);
+      letter-spacing: 1.5px;
+      transform: skewX(-12deg);
+      border-left: 6px solid var(--p5-white);
+      box-shadow: 5px 5px 0 var(--p5-black);
+    }
+
+    .badge-title span {
+      color: var(--p5-red);
+      background: var(--p5-white);
+      padding: 0 6px;
+      margin-right: 6px;
+    }
+
+    .controls-group {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-chip {
+      appearance: none;
+      border: 2px solid var(--p5-white);
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 8px 14px;
+      font-size: 13px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transform: skewX(-12deg);
+      transition: transform 0.2s var(--ease-overshoot), background-color 0.15s, color 0.15s;
+      box-shadow: 4px 4px 0 rgba(0, 0, 0, 0.7);
+    }
+
+    .toggle-chip:hover {
+      transform: skewX(-12deg) translateY(-2px) scale(1.04);
+    }
+
+    .toggle-chip.is-on {
+      background: var(--p5-white);
+      color: var(--p5-black);
+      border-color: var(--p5-black);
+    }
+
+    .toggle-chip.is-on .dot {
+      background: var(--p5-red);
+    }
+
+    .toggle-chip .dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: #666;
+      margin-right: 6px;
+      vertical-align: middle;
+    }
+
+    /* 中央舞台区 */
+    .center-stage {
+      position: relative;
+      z-index: 15;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      gap: 34px;
+    }
+
+    /* 预告信风格主标题展示 */
+    .calling-card-header {
+      text-align: center;
+      transform: rotate(-3deg);
+      pointer-events: none;
+    }
+
+    .calling-card-sub {
+      display: inline-block;
+      background: var(--p5-white);
+      color: var(--p5-black);
+      font-size: clamp(11px, 1.6vw, 13px);
+      font-weight: 900;
+      padding: 4px 12px;
+      letter-spacing: 2px;
+      margin-bottom: 10px;
+      box-shadow: 4px 4px 0 var(--p5-black);
+    }
+
+    /* 核心P5交互按钮容器 */
+    .p5-btn-wrapper {
+      position: relative;
+      display: inline-block;
+      transform: skewX(-12deg);
+      cursor: pointer;
+      transition: transform 0.28s var(--ease-overshoot);
+    }
+
+    /* 双层残影 */
+    .p5-ghost-red,
+    .p5-ghost-black {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0;
+      transition: transform 0.3s var(--ease-overshoot), opacity 0.2s ease;
+    }
+
+    .p5-ghost-red {
+      background: var(--p5-red);
+      border: 2px solid var(--p5-white);
+      clip-path: polygon(3% 14%, 99% 0%, 95% 86%, 0% 100%);
+      transform: translate(0, 0) scale(0.95);
+      z-index: 1;
+    }
+
+    .p5-ghost-black {
+      background: var(--p5-black);
+      border: 2px solid var(--p5-white);
+      clip-path: polygon(1% 4%, 100% 12%, 97% 95%, 0% 85%);
+      transform: translate(0, 0) scale(0.95);
+      z-index: 2;
+    }
+
+    /* 主按钮本体 */
+    .p5-btn {
+      position: relative;
+      z-index: 3;
+      appearance: none;
+      border: none;
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: clamp(16px, 3vw, 24px) clamp(32px, 6vw, 56px);
+      font-size: clamp(20px, 4vw, 32px);
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      clip-path: polygon(0% 14%, 100% 0%, 96% 88%, 3% 100%);
+      box-shadow: 8px 8px 0 var(--p5-white);
+      transition:
+        background-color 0.15s var(--ease-snap),
+        color 0.15s var(--ease-snap),
+        transform 0.28s var(--ease-overshoot),
+        box-shadow 0.24s var(--ease-overshoot);
+    }
+
+    /* 单个字符样式 */
+    .p5-char {
+      display: inline-block;
+      transform: rotate(var(--rot, 0deg)) translateY(var(--ty, 0px)) scale(var(--sc, 1));
+      transition:
+        transform 0.25s var(--ease-overshoot),
+        background-color 0.14s var(--ease-snap),
+        color 0.14s var(--ease-snap);
+    }
+
+    /* 悬停反馈 */
+    .p5-btn-wrapper:hover .p5-btn,
+    .p5-btn-wrapper:focus-within .p5-btn {
+      background: var(--p5-white);
+      color: var(--p5-black);
+      transform: translate(-7px, -5px) scale(1.06);
+      box-shadow: 12px 12px 0 var(--p5-black);
+    }
+
+    .p5-btn-wrapper:hover .p5-ghost-red {
+      opacity: 1;
+      transform: translate(18px, 13px) scale(1.04);
+      transition-delay: 0.02s;
+    }
+
+    .p5-btn-wrapper:hover .p5-ghost-black {
+      opacity: 0.92;
+      transform: translate(-16px, 11px) scale(1.03);
+      transition-delay: 0.05s;
+    }
+
+    .p5-btn-wrapper:hover .p5-char.invert-on-hover {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      padding: 0 4px;
+      transform: rotate(calc(var(--rot, 0deg) * -1.5)) translateY(-3px) scale(1.14);
+    }
+
+    /* 按下蓄力 */
+    .p5-btn-wrapper:active .p5-btn {
+      transform: translate(3px, 3px) scale(0.94);
+      box-shadow: 4px 4px 0 var(--p5-black);
+      transition-duration: 0.07s;
+    }
+
+    .p5-btn-wrapper:active .p5-ghost-red,
+    .p5-btn-wrapper:active .p5-ghost-black {
+      transform: translate(4px, 4px) scale(0.96);
+      transition-duration: 0.07s;
+    }
+
+    /* 次级快捷指令菜单组（测试多按钮联动手感） */
+    .sub-actions {
+      display: flex;
+      gap: 14px;
+      flex-wrap: wrap;
+      justify-content: center;
+      margin-top: 8px;
+    }
+
+    .p5-mini-btn {
+      appearance: none;
+      border: 2px solid var(--p5-white);
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 10px 20px;
+      font-size: 14px;
+      font-weight: 900;
+      letter-spacing: 1.5px;
+      cursor: pointer;
+      transform: skewX(-14deg);
+      clip-path: polygon(4% 0%, 100% 6%, 96% 100%, 0% 92%);
+      transition: transform 0.22s var(--ease-overshoot), background-color 0.14s, color 0.14s;
+    }
+
+    .p5-mini-btn:hover {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      transform: skewX(-14deg) translateY(-4px) scale(1.08);
+    }
+
+    .p5-mini-btn:active {
+      transform: skewX(-14deg) scale(0.94);
+    }
+
+    /* 爆发态 Banner 提示 */
+    .burst-banner {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      z-index: 35;
+      pointer-events: none;
+      transform: translate(-50%, -50%) rotate(-7deg) scale(0.4);
+      opacity: 0;
+      background: var(--p5-black);
+      color: var(--p5-white);
+      border: 4px solid var(--p5-white);
+      padding: 14px 36px;
+      font-size: clamp(22px, 5vw, 44px);
+      font-weight: 900;
+      letter-spacing: 4px;
+      white-space: nowrap;
+      box-shadow: 12px 12px 0 var(--p5-red);
+    }
+
+    .burst-banner.show {
+      animation: bannerPop 0.78s var(--ease-overshoot) forwards;
+    }
+
+    @keyframes bannerPop {
+      0% {
+        opacity: 0;
+        transform: translate(-50%, -50%) rotate(-12deg) scale(0.3);
+      }
+      22% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-6deg) scale(1.12);
+      }
+      75% {
+        opacity: 1;
+        transform: translate(-50%, -50%) rotate(-7deg) scale(1);
+      }
+      100% {
+        opacity: 0;
+        transform: translate(-50%, -65%) rotate(-4deg) scale(1.18);
+      }
+    }
+
+    /* 粒子层 */
+    #particleCanvas {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
+      pointer-events: none;
+    }
+
+    /* 底部状态提示 */
+    .bottom-bar {
+      position: relative;
+      z-index: 20;
+      padding: 14px 24px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 12px;
+      letter-spacing: 1px;
+      color: rgba(255, 255, 255, 0.85);
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .combo-counter {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      padding: 4px 12px;
+      font-weight: 900;
+      transform: skewX(-12deg);
+      border: 2px solid var(--p5-white);
+    }
+  </style>
+</head>
+<body>
+  <!-- 背景红黑波普层 -->
+  <div class="bg-stage" id="bgStage">
+    <div class="bg-slash-red" id="bgRed"></div>
+    <div class="bg-slash-black" id="bgBlack"></div>
+    <div class="bg-halftone"></div>
+    <div class="bg-stars"></div>
+  </div>
+
+  <!-- 粒子特效画布 -->
+  <canvas id="particleCanvas"></canvas>
+
+  <!-- 全屏斜切闪光层 -->
+  <div class="flash-overlay" id="flashOverlay"></div>
+
+  <!-- 爆发态大字标语 -->
+  <div class="burst-banner" id="burstBanner">★ TAKE YOUR HEART ★</div>
+
+  <!-- 顶部栏 -->
+  <header class="top-bar">
+    <div class="badge-title"><span>P5R</span>PHANTOM UI LAB</div>
+    <div class="controls-group">
+      <button class="toggle-chip is-on" id="soundToggle" type="button">
+        <span class="dot"></span>SFX 合成音效: ON
+      </button>
+      <button class="toggle-chip is-on" id="fxToggle" type="button">
+        <span class="dot"></span>VFX 闪光粒子: ON
+      </button>
+    </div>
+  </header>
+
+  <!-- 中央交互区 -->
+  <main class="center-stage">
+    <div class="calling-card-header">
+      <div class="calling-card-sub">HOVER TO INJECT GHOST // CLICK TO STEAL</div>
+    </div>
+
+    <!-- 核心P5斜切双层残影按钮 -->
+    <div class="p5-btn-wrapper" id="p5BtnWrapper">
+      <div class="p5-ghost-red" aria-hidden="true"></div>
+      <div class="p5-ghost-black" aria-hidden="true"></div>
+      <button class="p5-btn" id="p5Btn" type="button" data-text="TAKE YOUR HEART">
+        TAKE YOUR HEART
+      </button>
+    </div>
+
+    <!-- 切换文案与测试次级命令 -->
+    <div class="sub-actions">
+      <button class="p5-mini-btn" type="button" data-phrase="TAKE YOUR HEART">心之怪盗</button>
+      <button class="p5-mini-btn" type="button" data-phrase="ALL-OUT ATTACK">总攻击</button>
+      <button class="p5-mini-btn" type="button" data-phrase="SHOW ME YOUR TRUE FORM">揭露真身</button>
+      <button class="p5-mini-btn" type="button" data-phrase="LOOKING COOL JOKER">帅呆了 JOKER</button>
+    </div>
+  </main>
+
+  <!-- 底部栏 -->
+  <footer class="bottom-bar">
+    <div>CLIP-PATH POLYGON // OVERSHOOT CUBIC-BEZIER // DUAL GHOST LAYERS</div>
+    <div class="combo-counter" id="comboCounter">TRIGGERED: 0</div>
+  </footer>
+
+  <script>
+    const btn = document.getElementById("p5Btn");
+    const wrapper = document.getElementById("p5BtnWrapper");
+    const flashOverlay = document.getElementById("flashOverlay");
+    const burstBanner = document.getElementById("burstBanner");
+    const bgRed = document.getElementById("bgRed");
+    const bgBlack = document.getElementById("bgBlack");
+    const comboCounter = document.getElementById("comboCounter");
+    const soundToggle = document.getElementById("soundToggle");
+    const fxToggle = document.getElementById("fxToggle");
+
+    let soundEnabled = true;
+    let fxEnabled = true;
+    let triggerCount = 0;
+    let audioCtx = null;
+
+    // 开关控制
+    soundToggle.addEventListener("click", () => {
+      soundEnabled = !soundEnabled;
+      soundToggle.classList.toggle("is-on", soundEnabled);
+      soundToggle.innerHTML = `<span class="dot"></span>SFX 合成音效: ${soundEnabled ? "ON" : "OFF"}`;
+      if (soundEnabled) playHoverSound();
+    });
+
+    fxToggle.addEventListener("click", () => {
+      fxEnabled = !fxEnabled;
+      fxToggle.classList.toggle("is-on", fxEnabled);
+      fxToggle.innerHTML = `<span class="dot"></span>VFX 闪光粒子: ${fxEnabled ? "ON" : "OFF"}`;
+    });
+
+    // Web Audio API 合成 P5 风格清脆机械与爵士和弦音效（无需外部音频文件）
+    function getAudioContext() {
+      if (!audioCtx) {
+        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+        if (AudioContextClass) audioCtx = new AudioContextClass();
+      }
+      if (audioCtx && audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    function playHoverSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "triangle";
+      osc.frequency.setValueAtTime(520, now);
+      osc.frequency.exponentialRampToValueAtTime(980, now + 0.055);
+
+      gain.gain.setValueAtTime(0.12, now);
+      gain.gain.exponentialRampToValueAtTime(0.001, now + 0.065);
+
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start(now);
+      osc.stop(now + 0.07);
+    }
+
+    function playBurstSound() {
+      if (!soundEnabled) return;
+      const ctx = getAudioContext();
+      if (!ctx) return;
+
+      const now = ctx.currentTime;
+      // 模拟锐利斜切噪音冲击 + 酸爵士九和弦拨弦
+      const freqs = [293.66, 349.23, 440.0, 523.25, 659.25]; // Dm9
+      freqs.forEach((f, idx) => {
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = idx % 2 === 0 ? "sawtooth" : "triangle";
+        osc.frequency.setValueAtTime(f, now + idx * 0.018);
+        osc.frequency.exponentialRampToValueAtTime(f * 1.015, now + 0.28);
+
+        gain.gain.setValueAtTime(0.001, now + idx * 0.018);
+        gain.gain.linearRampToValueAtTime(0.07, now + idx * 0.018 + 0.015);
+        gain.gain.exponentialRampToValueAtTime(0.0008, now + 0.36);
+
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start(now + idx * 0.018);
+        osc.stop(now + 0.38);
+      });
+    }
+
+    // 拆分字符串为独立字符，注入伪随机倾角与黑白反转标记
+    function buildP5Chars(buttonEl, text) {
+      const rawText = (text || buttonEl.dataset.text || buttonEl.textContent).trim();
+      buttonEl.dataset.text = rawText;
+      buttonEl.innerHTML = "";
+
+      [...rawText].forEach((ch, idx) => {
+        if (ch === " ") {
+          const space = document.createElement("span");
+          space.style.display = "inline-block";
+          space.style.width = "12px";
+          buttonEl.appendChild(space);
+          return;
+        }
+
+        const span = document.createElement("span");
+        span.className = "p5-char";
+        span.textContent = ch;
+
+        // 确定性伪随机参数
+        const seed = Math.sin((idx + 1) * 14.37) * 43758.5453;
+        const frac = seed - Math.floor(seed);
+        const rot = ((frac - 0.5) * 15).toFixed(1) + "deg";
+        const ty = (((idx % 3) - 1) * 2.8).toFixed(1) + "px";
+        const sc = (0.93 + frac * 0.15).toFixed(2);
+
+        span.style.setProperty("--rot", rot);
+        span.style.setProperty("--ty", ty);
+        span.style.setProperty("--sc", sc);
+
+        if (idx % 3 === 1) {
+          span.classList.add("invert-on-hover");
+        }
+
+        buttonEl.appendChild(span);
+      });
+    }
+
+    buildP5Chars(btn, "TAKE YOUR HEART");
+
+    // 悬停音效与背景微视差
+    wrapper.addEventListener("mouseenter", () => {
+      playHoverSound();
+      bgRed.style.transform = "rotate(-14deg) scale(1.04)";
+      bgBlack.style.transform = "rotate(-6deg) translateY(-8px)";
+    });
+
+    wrapper.addEventListener("mouseleave", () => {
+      bgRed.style.transform = "rotate(-16deg) scale(1)";
+      bgBlack.style.transform = "rotate(-8deg) translateY(0)";
+    });
+
+    // Canvas 星芒与斜切碎片粒子系统
+    const canvas = document.getElementById("particleCanvas");
+    const ctx2d = canvas.getContext("2d");
+    let particles = [];
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function spawnBurstParticles(x, y) {
+      if (!fxEnabled) return;
+      const palette = ["#ffffff", "#e60012", "#0a0a0c", "#ffe600"];
+      for (let i = 0; i < 36; i++) {
+        const angle = (Math.PI * 2 * i) / 36 + (Math.random() - 0.5) * 0.3;
+        const speed = 6 + Math.random() * 14;
+        particles.push({
+          x,
+          y,
+          vx: Math.cos(angle) * speed,
+          vy: Math.sin(angle) * speed,
+          size: 8 + Math.random() * 14,
+          rot: Math.random() * Math.PI * 2,
+          vRot: (Math.random() - 0.5) * 0.25,
+          color: palette[i % palette.length],
+          shape: i % 2 === 0 ? "star" : "shard",
+          life: 1,
+          decay: 0.022 + Math.random() * 0.018
+        });
+      }
+    }
+
+    function drawStar(ctx, r) {
+      ctx.beginPath();
+      for (let i = 0; i < 5; i++) {
+        const a1 = (i * 2 * Math.PI) / 5 - Math.PI / 2;
+        const a2 = a1 + Math.PI / 5;
+        ctx.lineTo(Math.cos(a1) * r, Math.sin(a1) * r);
+        ctx.lineTo(Math.cos(a2) * (r * 0.42), Math.sin(a2) * (r * 0.42));
+      }
+      ctx.closePath();
+      ctx.fill();
+    }
+
+    function renderParticles() {
+      ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+      particles = particles.filter((p) => p.life > 0);
+
+      for (const p of particles) {
+        p.x += p.vx;
+        p.y += p.vy;
+        p.vx *= 0.94;
+        p.vy *= 0.94;
+        p.rot += p.vRot;
+        p.life -= p.decay;
+
+        ctx2d.save();
+        ctx2d.globalAlpha = Math.max(0, p.life);
+        ctx2d.translate(p.x, p.y);
+        ctx2d.rotate(p.rot);
+        ctx2d.fillStyle = p.color;
+
+        if (p.shape === "star") {
+          drawStar(ctx2d, p.size);
+        } else {
+          // 锐利三角形碎片
+          ctx2d.beginPath();
+          ctx2d.moveTo(-p.size, -p.size * 0.4);
+          ctx2d.lineTo(p.size * 1.2, 0);
+          ctx2d.lineTo(-p.size * 0.3, p.size * 0.7);
+          ctx2d.closePath();
+          ctx2d.fill();
+        }
+        ctx2d.restore();
+      }
+
+      requestAnimationFrame(renderParticles);
+    }
+    requestAnimationFrame(renderParticles);
+
+    // 点击主按钮触发爆发反馈
+    btn.addEventListener("click", (e) => {
+      triggerCount++;
+      comboCounter.textContent = `TRIGGERED: ${triggerCount}`;
+
+      playBurstSound();
+
+      // 过冲回弹脉冲
+      wrapper.style.transform = "skewX(-12deg) scale(1.14)";
+      setTimeout(() => {
+        wrapper.style.transform = "skewX(-12deg) scale(1)";
+      }, 140);
+
+      // 计算爆发坐标（兼容键盘回车触发）
+      const rect = btn.getBoundingClientRect();
+      const cx = e.clientX || rect.left + rect.width / 2;
+      const cy = e.clientY || rect.top + rect.height / 2;
+      spawnBurstParticles(cx, cy);
+
+      if (fxEnabled) {
+        // 全屏斜切闪光
+        flashOverlay.classList.remove("active");
+        void flashOverlay.offsetWidth;
+        flashOverlay.classList.add("active");
+
+        // 弹出标语
+        burstBanner.textContent = `★ ${btn.dataset.text} ★`;
+        burstBanner.classList.remove("show");
+        void burstBanner.offsetWidth;
+        burstBanner.classList.add("show");
+      }
+    });
+
+    // 次级快捷指令按钮：动态切换主按钮文案并触发一次小回弹
+    document.querySelectorAll(".p5-mini-btn").forEach((mini) => {
+      mini.addEventListener("mouseenter", playHoverSound);
+      mini.addEventListener("click", () => {
+        const phrase = mini.dataset.phrase;
+        buildP5Chars(btn, phrase);
+        playHoverSound();
+        wrapper.style.transform = "skewX(-12deg) scale(0.9) rotate(-2deg)";
+        setTimeout(() => {
+          wrapper.style.transform = "skewX(-12deg) scale(1.06) rotate(0deg)";
+          setTimeout(() => {
+            wrapper.style.transform = "skewX(-12deg) scale(1)";
+          }, 130);
+        }, 80);
+      });
+    });
+  </script>
+</body>
+</html>
