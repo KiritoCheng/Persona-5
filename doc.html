@@ -1,0 +1,2732 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PHANTOM THIEVES // P5R 怪盗攻略手册</title>
+  <style>
+    :root {
+      --p5-red: #e10600;
+      --p5-dark-red: #9c0400;
+      --p5-black: #0c0c0e;
+      --p5-panel: #141418;
+      --p5-panel-2: #1c1c22;
+      --p5-white: #ffffff;
+      --p5-yellow: #ffe600;
+      --p5-gray: #8a8a93;
+      --ease-overshoot: cubic-bezier(0.22, 1.48, 0.36, 1);
+      --ease-snap: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      min-height: 100vh;
+      background-color: var(--p5-black);
+      background-image:
+        radial-gradient(rgba(255, 255, 255, 0.07) 1.5px, transparent 1.5px),
+        linear-gradient(135deg, rgba(225, 6, 0, 0.16) 0%, transparent 55%);
+      background-size: 16px 16px, 100% 100%;
+      color: var(--p5-white);
+      font-family: "PingFang SC", "Microsoft YaHei", "Arial Black", sans-serif;
+      overflow-x: hidden;
+    }
+
+    /* 顶部警戒斜纹条 */
+    .top-slash {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 7px;
+      background: repeating-linear-gradient(
+        -45deg,
+        var(--p5-red),
+        var(--p5-red) 18px,
+        var(--p5-white) 18px,
+        var(--p5-white) 36px
+      );
+      z-index: 120;
+    }
+
+    /* 顶部粘性导航 */
+    .top-nav {
+      position: sticky;
+      top: 7px;
+      z-index: 100;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 12px 24px;
+      background: rgba(12, 12, 14, 0.94);
+      backdrop-filter: blur(8px);
+      border-bottom: 3px solid var(--p5-red);
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .brand-logo {
+      font-weight: 900;
+      font-size: 16px;
+      letter-spacing: 2px;
+      background: var(--p5-red);
+      color: var(--p5-white);
+      padding: 6px 16px;
+      transform: skewX(-14deg);
+      cursor: pointer;
+      border: 2px solid var(--p5-white);
+      box-shadow: 4px 4px 0 var(--p5-white);
+      transition: transform 0.2s var(--ease-overshoot), background 0.15s, color 0.15s;
+    }
+
+    .brand-logo:hover {
+      transform: skewX(-14deg) scale(1.06);
+      background: var(--p5-white);
+      color: var(--p5-black);
+    }
+
+    .nav-pills {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .nav-pill {
+      appearance: none;
+      border: 2px solid var(--p5-white);
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 7px 14px;
+      font-size: 13px;
+      font-weight: 900;
+      transform: skewX(-12deg);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-overshoot);
+    }
+
+    .nav-pill:hover,
+    .nav-pill.active {
+      background: var(--p5-red);
+      border-color: var(--p5-white);
+      transform: skewX(-12deg) translateY(-2px);
+      box-shadow: 4px 4px 0 var(--p5-white);
+    }
+
+    /* 视图切换动画 */
+    .view-section {
+      display: none;
+      animation: panelEnter 0.34s var(--ease-overshoot) forwards;
+    }
+
+    .view-section.active {
+      display: block;
+    }
+
+    @keyframes panelEnter {
+      0% {
+        opacity: 0;
+        transform: translateX(-24px) skewX(-3deg);
+      }
+      100% {
+        opacity: 1;
+        transform: translateX(0) skewX(0deg);
+      }
+    }
+
+    /* ==================== 首页封面 ==================== */
+    .hero-stage {
+      min-height: calc(100vh - 68px);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 36px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .hero-bg-slash {
+      position: absolute;
+      width: 65vw;
+      height: 130vh;
+      right: -12vw;
+      top: -15vh;
+      background: var(--p5-red);
+      opacity: 0.14;
+      transform: rotate(-16deg);
+      pointer-events: none;
+    }
+
+    .hero-badge {
+      background: var(--p5-white);
+      color: var(--p5-black);
+      font-weight: 900;
+      font-size: 13px;
+      letter-spacing: 2.5px;
+      padding: 6px 18px;
+      margin-bottom: 28px;
+      transform: skewX(-14deg) rotate(-2deg);
+      box-shadow: 5px 5px 0 var(--p5-red);
+      z-index: 2;
+    }
+
+    .p5-btn-wrapper {
+      position: relative;
+      display: inline-block;
+      transform: skewX(-12deg);
+      cursor: pointer;
+      user-select: none;
+      margin-bottom: 44px;
+      z-index: 5;
+      transition: transform 0.28s var(--ease-overshoot);
+    }
+
+    .p5-ghost-red,
+    .p5-ghost-black {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      transition: transform 0.28s var(--ease-overshoot), opacity 0.2s ease;
+      opacity: 0;
+    }
+
+    .p5-ghost-red {
+      background: var(--p5-red);
+      clip-path: polygon(4% 12%, 98% 0%, 94% 88%, 0% 100%);
+      z-index: 1;
+    }
+
+    .p5-ghost-black {
+      background: var(--p5-black);
+      border: 2px solid var(--p5-white);
+      clip-path: polygon(2% 6%, 100% 10%, 96% 94%, 0% 86%);
+      z-index: 2;
+    }
+
+    .p5-btn {
+      position: relative;
+      z-index: 3;
+      appearance: none;
+      border: none;
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 22px 50px;
+      font-size: clamp(22px, 4.2vw, 36px);
+      font-weight: 900;
+      letter-spacing: 2px;
+      cursor: pointer;
+      clip-path: polygon(0% 14%, 100% 0%, 96% 88%, 3% 100%);
+      box-shadow: 8px 8px 0 var(--p5-red);
+      transition:
+        background-color 0.16s var(--ease-snap),
+        color 0.16s var(--ease-snap),
+        transform 0.28s var(--ease-overshoot),
+        box-shadow 0.22s var(--ease-overshoot);
+    }
+
+    .p5-char {
+      display: inline-block;
+      transform: rotate(var(--rot, 0deg)) translateY(var(--ty, 0px)) scale(var(--sc, 1));
+      transition:
+        transform 0.24s var(--ease-overshoot),
+        background-color 0.16s var(--ease-snap),
+        color 0.16s var(--ease-snap);
+    }
+
+    .p5-btn-wrapper:hover .p5-btn {
+      background: var(--p5-white);
+      color: var(--p5-black);
+      transform: translate(-6px, -4px) scale(1.05);
+      box-shadow: 12px 12px 0 var(--p5-red);
+    }
+
+    .p5-btn-wrapper:hover .p5-ghost-red {
+      opacity: 0.95;
+      transform: translate(16px, 12px) scale(1.03);
+      transition-delay: 0.03s;
+    }
+
+    .p5-btn-wrapper:hover .p5-ghost-black {
+      opacity: 0.85;
+      transform: translate(-16px, 10px) scale(1.02);
+      transition-delay: 0.06s;
+    }
+
+    .p5-btn-wrapper:hover .p5-char.invert-on-hover {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      padding: 0 4px;
+      transform: rotate(calc(var(--rot, 0deg) * -1.4)) translateY(-2px) scale(1.12);
+    }
+
+    .p5-btn-wrapper:active .p5-btn {
+      transform: translate(2px, 2px) scale(0.95);
+      box-shadow: 3px 3px 0 var(--p5-red);
+      transition-duration: 0.08s;
+    }
+
+    .sub-actions {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 16px;
+      max-width: 920px;
+      z-index: 5;
+    }
+
+    .p5-mini-btn {
+      position: relative;
+      appearance: none;
+      border: 2px solid var(--p5-white);
+      background: var(--p5-black);
+      color: var(--p5-white);
+      padding: 14px 24px;
+      font-size: 15px;
+      font-weight: 900;
+      letter-spacing: 1px;
+      transform: skewX(-12deg);
+      cursor: pointer;
+      box-shadow: 5px 5px 0 var(--p5-red);
+      transition: all 0.24s var(--ease-overshoot);
+    }
+
+    .p5-mini-btn span {
+      display: inline-block;
+      transform: skewX(12deg);
+    }
+
+    .p5-mini-btn:hover {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      transform: skewX(-12deg) translate(-4px, -4px) scale(1.06);
+      box-shadow: 8px 8px 0 var(--p5-white);
+    }
+
+    .p5-mini-btn:active {
+      transform: skewX(-12deg) scale(0.95);
+    }
+
+    .hero-hint {
+      margin-top: 28px;
+      font-size: 13px;
+      color: rgba(255, 255, 255, 0.72);
+      text-align: center;
+      z-index: 2;
+    }
+
+    /* ==================== 攻略模块通用头部与筛选 ==================== */
+    .guide-container {
+      max-width: 1140px;
+      margin: 0 auto;
+      padding: 32px 20px 80px;
+    }
+
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+      border-left: 8px solid var(--p5-red);
+      padding-left: 16px;
+    }
+
+    .section-title {
+      font-size: clamp(22px, 3.5vw, 32px);
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+
+    .section-title em {
+      font-style: normal;
+      background: var(--p5-red);
+      color: var(--p5-white);
+      padding: 2px 10px;
+      margin-left: 8px;
+      font-size: 14px;
+      vertical-align: middle;
+    }
+
+    .toolbar-row {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 20px;
+    }
+
+    .filter-bar {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-chip {
+      appearance: none;
+      border: 2px solid rgba(255, 255, 255, 0.35);
+      background: var(--p5-panel);
+      color: var(--p5-white);
+      padding: 8px 15px;
+      font-weight: 800;
+      font-size: 13px;
+      transform: skewX(-10deg);
+      cursor: pointer;
+      transition: all 0.2s var(--ease-overshoot);
+    }
+
+    .filter-chip:hover,
+    .filter-chip.active {
+      background: var(--p5-white);
+      color: var(--p5-black);
+      border-color: var(--p5-red);
+      box-shadow: 4px 4px 0 var(--p5-red);
+    }
+
+    .search-box {
+      position: relative;
+      min-width: 240px;
+      flex: 1;
+      max-width: 340px;
+    }
+
+    .search-input {
+      width: 100%;
+      background: var(--p5-panel);
+      border: 2px solid var(--p5-white);
+      color: var(--p5-white);
+      padding: 9px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      outline: none;
+      transform: skewX(-8deg);
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+
+    .search-input:focus {
+      border-color: var(--p5-red);
+      box-shadow: 4px 4px 0 var(--p5-red);
+    }
+
+    /* 音符图例条 */
+    .legend-bar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 14px;
+      background: var(--p5-panel);
+      border: 1px solid rgba(255, 255, 255, 0.2);
+      padding: 10px 16px;
+      margin-bottom: 22px;
+      font-size: 13px;
+    }
+
+    .note-pill {
+      display: inline-flex;
+      align-items: center;
+      padding: 2px 8px;
+      font-weight: 900;
+      font-size: 12px;
+      border-radius: 2px;
+      margin-right: 4px;
+    }
+
+    .note-3 {
+      background: var(--p5-yellow);
+      color: var(--p5-black);
+      border: 1px solid var(--p5-red);
+    }
+
+    .note-2 {
+      background: var(--p5-white);
+      color: var(--p5-black);
+    }
+
+    .note-0 {
+      background: #2f2f37;
+      color: #a8a8b3;
+    }
+
+    /* ==================== Coop 手风琴卡片 ==================== */
+    .coop-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .coop-item {
+      background: var(--p5-panel);
+      border: 2px solid var(--p5-white);
+      box-shadow: 6px 6px 0 var(--p5-red);
+      transition: transform 0.2s var(--ease-overshoot);
+    }
+
+    .coop-header {
+      padding: 16px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      cursor: pointer;
+      background: linear-gradient(90deg, rgba(225, 6, 0, 0.18) 0%, transparent 65%);
+      flex-wrap: wrap;
+    }
+
+    .coop-header:hover {
+      background: linear-gradient(90deg, rgba(225, 6, 0, 0.32) 0%, rgba(255, 255, 255, 0.04) 80%);
+    }
+
+    .coop-title-group {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .arcana-tag {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 4px 10px;
+      transform: skewX(-12deg);
+      border: 1px solid var(--p5-white);
+    }
+
+    .char-name {
+      font-size: 20px;
+      font-weight: 900;
+    }
+
+    .unlock-badge {
+      font-size: 12px;
+      color: var(--p5-yellow);
+      background: rgba(255, 230, 0, 0.12);
+      border: 1px solid rgba(255, 230, 0, 0.4);
+      padding: 3px 8px;
+      font-weight: 700;
+    }
+
+    .expand-indicator {
+      font-size: 13px;
+      font-weight: 900;
+      background: var(--p5-white);
+      color: var(--p5-black);
+      padding: 4px 12px;
+      transform: skewX(-12deg);
+    }
+
+    .coop-body {
+      display: none;
+      padding: 18px 20px 22px;
+      border-top: 1px dashed rgba(255, 255, 255, 0.25);
+      background: var(--p5-panel-2);
+    }
+
+    .coop-item.open .coop-body {
+      display: block;
+    }
+
+    .coop-summary {
+      font-size: 13px;
+      line-height: 1.65;
+      color: #f1f1f5;
+      background: rgba(0, 0, 0, 0.38);
+      border-left: 4px solid var(--p5-yellow);
+      padding: 10px 14px;
+      margin-bottom: 14px;
+    }
+
+    .rank-quick-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 16px;
+      padding-bottom: 12px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.16);
+    }
+
+    .rank-jump-btn {
+      appearance: none;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      background: var(--p5-panel);
+      color: var(--p5-white);
+      padding: 4px 10px;
+      font-size: 12px;
+      font-weight: 800;
+      transform: skewX(-10deg);
+      cursor: pointer;
+      transition: all 0.16s var(--ease-overshoot);
+    }
+
+    .rank-jump-btn:hover,
+    .rank-jump-btn.active {
+      background: var(--p5-red);
+      border-color: var(--p5-white);
+      color: var(--p5-white);
+      transform: skewX(-10deg) translateY(-1px);
+    }
+
+    .rank-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+      gap: 12px;
+    }
+
+    .rank-card {
+      background: var(--p5-panel);
+      border: 1px solid rgba(255, 255, 255, 0.22);
+      border-left: 4px solid var(--p5-red);
+      padding: 12px 14px;
+      transition: border-color 0.18s, transform 0.18s var(--ease-overshoot);
+    }
+
+    .rank-card:hover {
+      border-color: var(--p5-white);
+      border-left-color: var(--p5-yellow);
+      transform: translateY(-2px);
+    }
+
+    .rank-card.highlighted {
+      border-color: var(--p5-yellow);
+      box-shadow: 0 0 0 1px var(--p5-yellow);
+    }
+
+    .rank-top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+      flex-wrap: wrap;
+    }
+
+    .rank-badge {
+      background: var(--p5-red);
+      color: var(--p5-white);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 2px 8px;
+      transform: skewX(-10deg);
+    }
+
+    .rank-perk {
+      font-size: 11px;
+      font-weight: 800;
+      color: var(--p5-yellow);
+    }
+
+    .rank-note {
+      font-size: 12px;
+      color: #c8c8d2;
+      margin-bottom: 8px;
+      line-height: 1.45;
+    }
+
+    .choice-list {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    .choice-row {
+      background: rgba(255, 255, 255, 0.03);
+      padding: 6px 8px;
+      border-radius: 2px;
+    }
+
+    .choice-prompt {
+      display: block;
+      font-size: 11px;
+      color: var(--p5-gray);
+      margin-bottom: 3px;
+    }
+
+    .choice-opts {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+
+    .opt-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 2px 7px;
+      border-radius: 2px;
+      font-size: 12px;
+      background: rgba(0, 0, 0, 0.45);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .opt-chip.best {
+      border-color: rgba(255, 230, 0, 0.65);
+      color: var(--p5-white);
+      font-weight: 700;
+    }
+
+    .opt-chip.romance {
+      border-color: rgba(255, 105, 180, 0.75);
+      background: rgba(225, 6, 0, 0.22);
+    }
+
+    /* ==================== 送礼与五维通用卡片 ==================== */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+      gap: 20px;
+    }
+
+    .p5-card {
+      background: var(--p5-panel);
+      border: 2px solid var(--p5-white);
+      padding: 20px;
+      box-shadow: 6px 6px 0 var(--p5-red);
+      transition: transform 0.22s var(--ease-overshoot);
+    }
+
+    .p5-card:hover {
+      transform: translate(-3px, -3px);
+      box-shadow: 9px 9px 0 var(--p5-red);
+    }
+
+    .card-tag {
+      display: inline-block;
+      background: var(--p5-red);
+      color: var(--p5-white);
+      font-size: 12px;
+      font-weight: 900;
+      padding: 3px 10px;
+      transform: skewX(-12deg);
+      margin-bottom: 10px;
+    }
+
+    .card-title {
+      font-size: 20px;
+      font-weight: 900;
+      margin-bottom: 8px;
+      border-bottom: 1px dashed rgba(255, 255, 255, 0.25);
+      padding-bottom: 8px;
+    }
+
+    .card-meta {
+      font-size: 13px;
+      color: var(--p5-yellow);
+      margin-bottom: 12px;
+      font-weight: 700;
+      line-height: 1.5;
+    }
+
+    .card-list {
+      list-style: none;
+      font-size: 13.5px;
+      line-height: 1.65;
+    }
+
+    .card-list li {
+      margin-bottom: 8px;
+      padding-left: 14px;
+      position: relative;
+    }
+
+    .card-list li::before {
+      content: "▸";
+      position: absolute;
+      left: 0;
+      color: var(--p5-red);
+      font-weight: 900;
+    }
+
+    /* 阈值进度条徽章 */
+    .threshold-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-bottom: 12px;
+    }
+
+    .lv-chip {
+      background: var(--p5-black);
+      border: 1px solid rgba(255, 255, 255, 0.3);
+      font-size: 11px;
+      padding: 2px 7px;
+      font-weight: 800;
+    }
+
+    /* 斜切闪光转场 */
+    .slash-flash {
+      position: fixed;
+      inset: 0;
+      background: var(--p5-red);
+      z-index: 999;
+      pointer-events: none;
+      opacity: 0;
+    }
+
+    .slash-flash.boom {
+      animation: flashCut 0.32s ease-out forwards;
+    }
+
+    @keyframes flashCut {
+      0% {
+        opacity: 0.85;
+        clip-path: polygon(0 45%, 100% 25%, 100% 55%, 0 75%);
+      }
+      100% {
+        opacity: 0;
+        clip-path: polygon(0 0, 100% 0, 100% 100%, 0 100%);
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="top-slash"></div>
+  <div class="slash-flash" id="slashFlash"></div>
+
+  <!-- 顶部导航栏 -->
+  <header class="top-nav">
+    <div class="brand-logo" onclick="switchView('home')">P5R // PHANTOM GUIDE</div>
+    <nav class="nav-pills">
+      <button class="nav-pill active" data-target="home" onclick="switchView('home')">首页封面</button>
+      <button class="nav-pill" data-target="coop" onclick="switchView('coop')">Coop 升级对话</button>
+      <button class="nav-pill" data-target="gift" onclick="switchView('gift')">送礼指南</button>
+      <button class="nav-pill" data-target="stats" onclick="switchView('stats')">五维提升</button>
+    </nav>
+  </header>
+
+  <!-- 1. 首页封面视图 -->
+  <main id="view-home" class="view-section active">
+    <section class="hero-stage">
+      <div class="hero-bg-slash"></div>
+      <div class="hero-badge">PERSONA 5 ROYAL // 怪盗团行动档案</div>
+
+      <div class="p5-btn-wrapper" id="p5BtnWrapper">
+        <div class="p5-ghost-red" aria-hidden="true"></div>
+        <div class="p5-ghost-black" aria-hidden="true"></div>
+        <button class="p5-btn" id="p5Btn" type="button" data-text="TAKE YOUR HEART">
+          TAKE YOUR HEART
+        </button>
+      </div>
+
+      <div class="sub-actions">
+        <button class="p5-mini-btn" type="button" data-phrase="COOP DIALOGUE" onclick="switchView('coop')">
+          <span>Coop 升级对话</span>
+        </button>
+        <button class="p5-mini-btn" type="button" data-phrase="GIFT & AFFECTION" onclick="switchView('gift')">
+          <span>送礼指南</span>
+        </button>
+        <button class="p5-mini-btn" type="button" data-phrase="SOCIAL STATS MAX" onclick="switchView('stats')">
+          <span>五维提升</span>
+        </button>
+        <button class="p5-mini-btn" type="button" data-phrase="SHOW ME YOUR TRUE FORM" onclick="cycleMainPhrase()">
+          <span>切换预告信宣言</span>
+        </button>
+      </div>
+
+      <p class="hero-hint">悬停下方按钮可预览主标题动态切换，点击直接进入对应 P5R 攻略数据库</p>
+    </section>
+  </main>
+
+  <!-- 2. Coop 升级对话攻略 -->
+  <section id="view-coop" class="view-section">
+    <div class="guide-container">
+      <div class="section-header">
+        <h1 class="section-title">Coop 升级对话好感度全表<em>COOP DIALOGUE</em></h1>
+        <button class="nav-pill" onclick="switchView('home')">← 返回首页</button>
+      </div>
+
+      <div class="legend-bar">
+        <span><strong>好感度音符说明（需携带对应阿尔卡那人格面具）：</strong></span>
+        <span><span class="note-pill note-3">♪3</span>最佳回应（+3 音符/高好感）</span>
+        <span><span class="note-pill note-2">♪2</span>次佳回应（+2 音符/中等好感）</span>
+        <span><span class="note-pill note-0">♪0</span>无额外音符 / 剧情或固定选项</span>
+        <span style="color: var(--p5-yellow);">★ 展开任意角色可查看 Rank 1 ~ Rank 10 逐级对话与恋人分支</span>
+      </div>
+
+      <div class="toolbar-row">
+        <div class="filter-bar" id="coopFilters">
+          <button class="filter-chip active" data-filter="all">全部角色</button>
+          <button class="filter-chip" data-filter="team">怪盗团伙伴</button>
+          <button class="filter-chip" data-filter="support">强力支援协力者</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="coopSearch" class="search-input" placeholder="搜索角色名或阿尔卡那（如：龙司 / 节制 / 丸喜）..." />
+        </div>
+      </div>
+
+      <div class="coop-list" id="coopList"></div>
+    </div>
+  </section>
+
+  <!-- 3. 送礼指南攻略 -->
+  <section id="view-gift" class="view-section">
+    <div class="guide-container">
+      <div class="section-header">
+        <h1 class="section-title">协力者送礼偏好与购买地<em>GIFT GUIDE</em></h1>
+        <button class="nav-pill" onclick="switchView('home')">← 返回首页</button>
+      </div>
+
+      <div class="legend-bar">
+        <span><strong>送礼规则：</strong>当协力者提示「关系还不足以加深（未到升级阈值）」时，邀约出游并赠送对应高好感礼物可快速补足好感点数。</span>
+      </div>
+
+      <div class="toolbar-row">
+        <div class="filter-bar" id="giftFilters">
+          <button class="filter-chip active" data-filter="all">全部角色</button>
+          <button class="filter-chip" data-filter="female">女性协力者</button>
+          <button class="filter-chip" data-filter="male">男性协力者</button>
+        </div>
+        <div class="search-box">
+          <input type="text" id="giftSearch" class="search-input" placeholder="搜索角色或礼物购买地点（如：新宿 / 秋叶原）..." />
+        </div>
+      </div>
+
+      <div class="card-grid" id="giftGrid"></div>
+    </div>
+  </section>
+
+  <!-- 4. 五维提升攻略 -->
+  <section id="view-stats" class="view-section">
+    <div class="guide-container">
+      <div class="section-header">
+        <h1 class="section-title">人间五维阈值与高效提升<em>SOCIAL STATS</em></h1>
+        <button class="nav-pill" onclick="switchView('home')">← 返回首页</button>
+      </div>
+
+      <div class="legend-bar">
+        <span><strong>音符点数换算：</strong>♪1 = 2pt ｜ ♪2 = 3~4pt ｜ ♪3 = 5pt+。优先把不消耗时间的「观叶植物施肥 / 填字游戏 / 课堂问答 / 周日青汁」拿满！</span>
+      </div>
+
+      <div class="card-grid" id="statsGrid"></div>
+    </div>
+  </section>
+
+  <script>
+    // ==================== 完整 Rank 1 ~ Rank 10 Coop 对话数据库 ====================
+    // 音符标注说明：♪3 为最高好感回应，♪2 为次佳回应，♪0 为无额外音符或剧情固定推进。
+    const COOP_DATA = [
+      {
+        id: "ryuji",
+        name: "坂本龙司",
+        arcana: "战车 (Chariot)",
+        category: "team",
+        unlock: "4/12 剧情自动开启（Rank 1）",
+        summary: "携带「战车」人格面具；Rank 7 解锁「瞬杀」在印象空间/迷宫刷钱刷级极强，雨天部分室外事件不可推进。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "4/12 鸭志田宫殿初探后自动解锁 Rank 1。",
+            choices: [{ prompt: "剧情推进", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "搭档交涉",
+            note: "需非雨天；交涉失败时有机会代为劝说阴影。",
+            choices: [
+              { prompt: "“我还在指望你呢”", options: [{ text: "我指望你了", note: "♪3", level: 3 }, { text: "你看起来很兴奋", note: "♪3", level: 3 }, { text: "冷静点", note: "♪2", level: 2 }] },
+              { prompt: "“干脆一起去吃点东西？”", options: [{ text: "去吧", note: "♪2", level: 2 }, { text: "我饿了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "追击",
+            note: "需非雨天；主角普通攻击未击倒敌人时概率追击。",
+            choices: [
+              { prompt: "“别吵架了”", options: [{ text: "别打架", note: "♪2", level: 2 }, { text: "冷静点，龙司", note: "♪3", level: 3 }, { text: "我会让他们闭嘴", note: "♪0", level: 0 }] },
+              { prompt: "电话后续", options: [{ text: "也不能全怪你", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "潜行冲刺",
+            note: "冲刺时更不易被阴影发现。",
+            choices: [
+              { prompt: "“中冈好像不太合群…”", options: [{ text: "你在担心中冈吗？", note: "♪2", level: 2 }, { text: "别管他了", note: "♪0", level: 0 }] },
+              { prompt: "“不想变成他们那样”", options: [{ text: "你现在做得很棒", note: "♪3", level: 3 }, { text: "我懂你的心情", note: "♪3", level: 3 }, { text: "也没那么糟", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 5,
+            perk: "强力搭档交涉",
+            note: "5/6 后开放；进一步提升交涉成功率。",
+            choices: [
+              { prompt: "“带东西了吗？”", options: [{ text: "蛋白粉？", note: "♪3", level: 3 }, { text: "毛巾？", note: "♪2", level: 2 }] },
+              { prompt: "“关于归队的事…”", options: [{ text: "你好像很纠结", note: "♪2", level: 2 }, { text: "想回去吗？", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "别担心，交给我", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "鼓舞",
+            note: "需非雨天；同伴陷入异常状态时概率解除。",
+            choices: [
+              { prompt: "“接下来怎么练？”", options: [{ text: "来我家练吧", note: "♪2", level: 2 }, { text: "当然可以", note: "♪3", level: 3 }, { text: "差不多吧", note: "♪3", level: 3 }] },
+              { prompt: "电话后续", options: [{ text: "他一拳打回来了？", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "瞬杀",
+            note: "夜间短信触发月岛侦察；等级高于阴影10级以上可直接冲刺秒杀。",
+            choices: [
+              { prompt: "“不快点的话…”", options: [{ text: "去和武石谈谈", note: "♪3", level: 3 }, { text: "去改变他的心吧", note: "♪2", level: 2 }] },
+              { prompt: "“这就是我的真心话”", options: [{ text: "我觉得很酷，龙司", note: "♪3", level: 3 }, { text: "试过才知道", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "忍耐",
+            note: "需非雨天；承受致命伤害时概率以1 HP生还。",
+            choices: [
+              { prompt: "“我只是旁观而已”", options: [{ text: "你刚才可不酷", note: "♪2", level: 2 }, { text: "干得漂亮", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "结案了？", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "守护",
+            note: "概率替主角挡下致命攻击。",
+            choices: [
+              { prompt: "“这样算满意了吗？”", options: [{ text: "你满意了吗？", note: "♪3", level: 3 }, { text: "别冲动", note: "♪2", level: 2 }] },
+              { prompt: "“今后也一起加油吧”", options: [{ text: "我同意", note: "♪3", level: 3 }, { text: "我们也不会输", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "基德进化为塞琉斯；第三学期满足条件可解锁第三觉醒。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "ann",
+        name: "高卷杏",
+        arcana: "恋爱 (Lovers)",
+        category: "team",
+        unlock: "4/15 剧情自动开启（Rank 1）；Rank 2 需体贴 Lv.2",
+        summary: "主力法系输出与控场；Rank 9 出现恋人告白选项，选“我爱你”进入恋人路线，选“我们是队友”保持挚友路线。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "4/15 剧情自动解锁 Rank 1。",
+            choices: [{ prompt: "剧情推进", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "女子力交涉",
+            note: "需体贴 Lv.2；女性阴影交涉失败时可尝试再次劝说。",
+            choices: [
+              { prompt: "“她也道歉了…”", options: [{ text: "心情好点了吗？", note: "♪3", level: 3 }, { text: "不能全怪你", note: "♪2", level: 2 }] },
+              { prompt: "“我一定会找到答案的”", options: [{ text: "我会帮你的", note: "♪3", level: 3 }, { text: "小事一桩", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "追击",
+            note: "概率发动追击。",
+            choices: [
+              { prompt: "“以后也一起吧”", options: [{ text: "当然，你是队友", note: "♪2", level: 2 }, { text: "想出办法了", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "色诱",
+            note: "交涉时概率魅惑男性阴影。",
+            choices: [
+              { prompt: "“假哭的秘诀是…”", options: [{ text: "很有风度", note: "♪3", level: 3 }, { text: "太夸张了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 5,
+            perk: "鳄鱼的眼泪",
+            note: "提升特定交涉控场能力。",
+            choices: [
+              { prompt: "“看到她哭的时候…”", options: [{ text: "安慰她", note: "♪3", level: 3 }, { text: "展现你的坚强", note: "♪3", level: 3 }, { text: "倾听她说的话", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "鼓舞",
+            note: "概率解除同伴异常状态。",
+            choices: [
+              { prompt: "“我想成为真正的模特！”", options: [{ text: "你本来就很美", note: "♪3", level: 3 }, { text: "你一定行", note: "♪3", level: 3 }, { text: "听起来好累", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "强力女子力交涉",
+            note: "进一步强化女性阴影交涉。",
+            choices: [
+              { prompt: "“为什么美佳会找我…”", options: [{ text: "因为你是天生丽质", note: "♪3", level: 3 }, { text: "是陷阱吧", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "忍耐",
+            note: "概率以1 HP承受致命伤。",
+            choices: [
+              { prompt: "“只有努力让志帆安心…”", options: [{ text: "撑下去", note: "♪3", level: 3 }, { text: "你可以自己问她", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "守护 / 恋人分支",
+            note: "关键分歧点：选择“我爱你”开启恋人路线（Rank 10 触发专属约会）。",
+            choices: [
+              {
+                prompt: "“你愿意一直陪在我身边吗？”",
+                options: [
+                  { text: "我爱你（进入恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "我们是队友（保持挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              },
+              { prompt: "恋人后续追问", options: [{ text: "我愿意", note: "♪3", level: 3 }, { text: "真害羞", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "卡门进化为赫卡特；恋人或挚友均有独立收尾演出。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "yusuke",
+        name: "喜多川祐介",
+        arcana: "皇帝 (Emperor)",
+        category: "team",
+        unlock: "6/18 涩谷地下通道开启（Rank 1）",
+        summary: "携带「皇帝」人格面具；Rank 1 解锁技能卡复制，Rank 5 解锁技能卡制作，部分室外事件受天气影响。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "技能卡复制",
+            note: "可在卢布朗或指定地点复制技能卡。",
+            choices: [{ prompt: "剧情开启", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "剧情推进",
+            note: "探讨创作瓶颈与艺术真谛。",
+            choices: [
+              { prompt: "“想听听你坦率的意见”", options: [{ text: "很有新意", note: "♪2", level: 2 }, { text: "充满神秘感", note: "♪2", level: 2 }] },
+              { prompt: "“将成为复兴的火花！”", options: [{ text: "我很期待", note: "♪3", level: 3 }, { text: "已经够努力了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "追击",
+            note: "概率发动追击。",
+            choices: [
+              { prompt: "“没有画作我该怎么办…”", options: [{ text: "别想太多，继续画", note: "♪3", level: 3 }, { text: "别太夸大了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "艺术交涉",
+            note: "交涉时有机会重新沟通。",
+            choices: [
+              { prompt: "“什么时候才能画出心？”", options: [{ text: "我深信你可以", note: "♪3", level: 3 }, { text: "别钻牛角尖", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 5,
+            perk: "技能卡制作",
+            note: "可制作原本没有的技能卡。",
+            choices: [
+              { prompt: "“艺术的意义究竟何在…”", options: [{ text: "答案就在你心中", note: "♪3", level: 3 }, { text: "冷静一点", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "鼓舞",
+            note: "概率解除同伴异常状态。",
+            choices: [
+              { prompt: "“什么题材最能捕捉美？”", options: [{ text: "果然还是杏", note: "♪2", level: 2 }, { text: "风景也很不错", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "现场作画",
+            note: "进一步强化技能卡制作与辅助。",
+            choices: [
+              { prompt: "“心被世俗欲望蒙蔽了…”", options: [{ text: "你真的成长了，祐介", note: "♪3", level: 3 }, { text: "大家也都一样", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "忍耐",
+            note: "概率以1 HP承受致命伤。",
+            choices: [
+              { prompt: "“母亲画《希望》时在想什么？”", options: [{ text: "对儿子的爱", note: "♪3", level: 3 }, { text: "离别的痛苦", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "守护",
+            note: "概率替主角挡下致命攻击。",
+            choices: [
+              { prompt: "“我要再次拿起画笔…”", options: [{ text: "你真的变了，祐介", note: "♪3", level: 3 }, { text: "好主意", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "五右卫门进化为须佐之男。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "makoto",
+        name: "新岛真",
+        arcana: "女教皇 (Priestess)",
+        category: "team",
+        unlock: "6/25 后金城宫殿通关开启；Rank 1 需知识 Lv.3，Rank 6 需魅力 Lv.5",
+        summary: "携带「女教皇」人格面具；前期需知识 Lv.3 开启，Rank 6 需魅力 MAX，Rank 9 触发恋人告白选项。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "阴影计算",
+            note: "需知识 Lv.3；战斗分析界面显示技能与掉落。",
+            choices: [{ prompt: "初次对话", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "换手",
+            note: "需非雨天；1 More 后可换手给真。",
+            choices: [
+              { prompt: "“要是没有你来救我…”", options: [{ text: "太危险了", note: "♪3", level: 3 }, { text: "你应该更小心", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "优等生交涉",
+            note: "交涉失败时有机会代为劝说。",
+            choices: [
+              { prompt: "“被说成只是优等生…”", options: [{ text: "别太在意", note: "♪2", level: 2 }, { text: "你很努力了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "追击",
+            note: "概率发动追击。",
+            choices: [
+              { prompt: "“关于父亲的事…”", options: [{ text: "我能理解", note: "♪2", level: 2 }, { text: "休息一下吧", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 5,
+            perk: "联谊调查",
+            note: "推进荣子与司的事件。",
+            choices: [
+              { prompt: "“总觉得不太对劲…”", options: [{ text: "相信你的直觉", note: "♪2", level: 2 }, { text: "小心为上", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "鼓舞",
+            note: "需魅力 Lv.5（MAX）；解除异常状态。",
+            choices: [
+              { prompt: "“我想理解他们的想法”", options: [{ text: "很符合你的风格", note: "♪2", level: 2 }, { text: "我陪你一起", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "阴影因式分解",
+            note: "战斗高亮显示无效/反弹/吸收属性。",
+            choices: [
+              { prompt: "“父亲因公殉职时…”", options: [{ text: "你继承了他的正义", note: "♪3", level: 3 }, { text: "别勉强自己", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "忍耐",
+            note: "概率以1 HP承受致命伤。",
+            choices: [
+              { prompt: "“一定要揭穿司…”", options: [{ text: "我支持你", note: "♪3", level: 3 }, { text: "小心陷阱", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "守护 / 恋人分支",
+            note: "需非雨天；选择“我喜欢你”进入恋人路线。",
+            choices: [
+              {
+                prompt: "“恋爱这种事，我果然还是…”",
+                options: [
+                  { text: "我喜欢你（进入恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "一起慢慢学吧（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "琼安进化为西布莉。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "futaba",
+        name: "佐仓双叶",
+        arcana: "隐士 (Hermit)",
+        category: "team",
+        unlock: "8/31 剧情自动开启（Rank 1）；Rank 2 需体贴 Lv.4",
+        summary: "携带「隐士」人格面具；后排支援神技极多（地图全开、瞬袭总攻、后备换人），Rank 8 需完成印象空间委托。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "道德支援",
+            note: "8/31 剧情自动解锁；战斗中概率加攻防或回血。",
+            choices: [{ prompt: "初遇支援", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "印象空间扫描",
+            note: "需体贴 Lv.4；进入印象空间楼层时概率全图显示。",
+            choices: [{ prompt: "制定愿望清单", options: [{ text: "一步步来吧", note: "♪2", level: 2 }, { text: "我陪着你", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "秋叶原再挑战成功。",
+            choices: [{ prompt: "“还差一点…”", options: [{ text: "已经很厉害了", note: "♪2", level: 2 }, { text: "继续加油", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "位置黑客",
+            note: "开战时概率直接进入总攻击/挟持。",
+            choices: [{ prompt: "来到秀尽学园", options: [{ text: "欢迎来到学校", note: "♪2", level: 2 }, { text: "别紧张", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "剧情推进",
+            note: "借力三岛一口气完成两项心愿。",
+            choices: [
+              { prompt: "“也许我运气爆棚？”", options: [{ text: "我觉得你说得对", note: "♪3", level: 3 }, { text: "有点夸张", note: "♪2", level: 2 }] },
+              { prompt: "“快夸我帅气！”", options: [{ text: "你是主角嘛", note: "♪3", level: 3 }, { text: "干得漂亮", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "主动支援",
+            note: "道德支援概率恢复 SP 或蓄力。",
+            choices: [
+              { prompt: "“她每天对我说早安…”", options: [{ text: "一定很吃惊吧", note: "♪3", level: 3 }, { text: "开心吗？", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "宝物重启",
+            note: "战后概率刷新区域内可拾取道具。",
+            choices: [{ prompt: "委托解决好友父母问题", options: [{ text: "交给我们吧", note: "♪2", level: 2 }, { text: "一定会解决", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "需先完成印象空间委托《女儿只是摇钱树》。",
+            choices: [
+              { prompt: "“总算和她道了歉…”", options: [{ text: "太了不起了", note: "♪3", level: 3 }, { text: "真为你高兴", note: "♪3", level: 3 }, { text: "没结巴吗？", note: "♪2", level: 2 }] },
+              { prompt: "“全靠你我才能做到！”", options: [{ text: "你自己也很努力", note: "♪3", level: 3 }, { text: "让我脸红了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "紧急切换 / 恋人分支",
+            note: "2人以上倒下时概率替补换人；选“因为我喜欢你”进入恋人路线。",
+            choices: [
+              { prompt: "“离开你就会一直想…”", options: [{ text: "你还好吗，双叶？", note: "♪3", level: 3 }, { text: "你变成熟了", note: "♪3", level: 3 }] },
+              {
+                prompt: "“为什么……？”",
+                options: [
+                  { text: "因为我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "因为我们是队友（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "最终守护 / 第二觉醒",
+            note: "概率挡下当前出战同伴致命伤；死灵之书进化为普罗米修斯。",
+            choices: [
+              { prompt: "“希望能一点点改变…”", options: [{ text: "慢慢来就好", note: "♪3", level: 3 }, { text: "我们一起努力", note: "♪3", level: 3 }] }
+            ]
+          }
+        ]
+      },
+      {
+        id: "haru",
+        name: "奥村春",
+        arcana: "女皇 (Empress)",
+        category: "team",
+        unlock: "10/30 后秀尽学园天台开启（Rank 1）；Rank 2 需灵巧 Lv.5",
+        summary: "携带「女皇」人格面具；天台种菜可产出恢复 SP 的顶级道具，前期需灵巧 Lv.5 才能升到 Rank 2。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "栽培",
+            note: "可在秀尽学园天台种植蔬菜。",
+            choices: [{ prompt: "天台种菜", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "换手 / 需灵巧 Lv.5",
+            note: "需灵巧 Lv.5；解锁换手。",
+            choices: [{ prompt: "“要开始种咖啡豆了”", options: [{ text: "像在务农一样？", note: "♪0", level: 0 }, { text: "很有趣呢", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "追击",
+            note: "概率发动追击。",
+            choices: [{ prompt: "“想和未婚夫划清界限…”", options: [{ text: "一定会没事的", note: "♪3", level: 3 }, { text: "不会被发现的", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 4,
+            perk: "名流交涉",
+            note: "交涉失败时概率再次尝试。",
+            choices: [{ prompt: "酒店会面后", options: [{ text: "小心观察他", note: "♪2", level: 2 }, { text: "我陪着你", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "丰收",
+            note: "单次收获蔬菜产量增加。",
+            choices: [{ prompt: "“为了公司要联姻…”", options: [{ text: "有人在说谎", note: "♪3", level: 3 }, { text: "别委屈自己", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "鼓舞",
+            note: "概率解除异常状态。",
+            choices: [{ prompt: "“祖父留下的咖啡…”", options: [{ text: "太迷人了", note: "♪2", level: 2 }, { text: "能泡给我喝吗？", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 7,
+            perk: "土壤改良",
+            note: "缩短蔬菜培育所需天数。",
+            choices: [{ prompt: "准备找新社长谈话", options: [{ text: "我支持你", note: "♪2", level: 2 }, { text: "注意安全", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "忍耐",
+            note: "概率以1 HP承受致命伤。",
+            choices: [{ prompt: "“关于土壤与咖啡…”", options: [{ text: "土壤也很重要", note: "♪2", level: 2 }, { text: "你很认真呢", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 9,
+            perk: "守护 / 恋人分支",
+            note: "选择“我喜欢你”进入恋人路线；注意拒绝恋人时春的反应较失落，建议提前存档。",
+            choices: [
+              { prompt: "“接下来要加油了”", options: [{ text: "全力以赴吧，春", note: "♪3", level: 3 }] },
+              {
+                prompt: "恋人告白节点",
+                options: [
+                  { text: "我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "作为同伴支持你（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "米莱迪进化为阿斯塔特。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "akechi",
+        name: "明智吾郎",
+        arcana: "正义 (Justice)",
+        category: "team",
+        unlock: "6/10 开启；11/17 前需达 Rank 8，且 11/2 决斗选“接受”",
+        summary: "P5R 关键角色！11/17 前升至 Rank 8 且接受约定，才可在第三学期解锁完整剧情与第三觉醒。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "6/10 吉祥寺事件后自动解锁 Rank 1。",
+            choices: [{ prompt: "初次交锋", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "侦探直觉",
+            note: "开战概率显示敌人一项弱点/抗性。",
+            choices: [{ prompt: "吉祥寺打台球", options: [{ text: "架势很帅", note: "♪2", level: 2 }, { text: "很认真呢", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "帮明智躲开狂热粉丝。",
+            choices: [{ prompt: "逃脱后对话", options: [{ text: "辛苦了", note: "♪2", level: 2 }, { text: "真受欢迎", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "侦探精通",
+            note: "开战概率显示敌人全部属性抗性。",
+            choices: [{ prompt: "爵士俱乐部谈心", options: [{ text: "我能理解", note: "♪2", level: 2 }, { text: "这很适合你", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "剧情推进",
+            note: "飞镖/射击与童年理想。",
+            choices: [{ prompt: "谈及过去", options: [{ text: "很有志气", note: "♪2", level: 2 }, { text: "我明白", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "换手 / 追击",
+            note: "解锁换手、追击与侦探交涉。",
+            choices: [{ prompt: "澡堂与台球约定", options: [{ text: "下次再战", note: "♪3", level: 3 }, { text: "期待着呢", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "鼓舞",
+            note: "概率解除同伴异常状态。",
+            choices: [{ prompt: "台球对决后", options: [{ text: "别手下留情", note: "♪2", level: 2 }, { text: "很精彩", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 8,
+            perk: "关键抉择点",
+            note: "11/17 前需达 Rank 8；末尾对决必须选“接受”（“I accept your challenge/rivalry”）。",
+            choices: [
+              {
+                prompt: "11/2 印象空间约战结尾",
+                options: [
+                  { text: "接受约定 / 成为宿敌", note: "♪3 必选", level: 3 },
+                  { text: "拒绝", note: "♪0 勿选", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "守护",
+            note: "随新岛宫殿剧情推进解锁。",
+            choices: [{ prompt: "宫殿剧情节点", options: [{ text: "剧情固定推进", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒*",
+            note: "随剧情推进达成 Max；第三学期解锁洛基与埃尔维斯。",
+            choices: [{ prompt: "最终结局", options: [{ text: "剧情自动达成", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "kasumi",
+        name: "芳泽霞（芳泽堇）",
+        arcana: "信念 (Faith)",
+        category: "team",
+        unlock: "5/30 开启；12/22 前须达 Rank 5，第三学期升至 Rank 10",
+        summary: "携带「信念」人格面具；12/22 前必须升到 Rank 5，否则无法在第三学期继续推进到 Rank 10。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "5/30 剧情自动解锁；吉祥寺可邀约。",
+            choices: [{ prompt: "初次见面", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "翻滚 / HP +5",
+            note: "宫殿中更不易被敌人包围；最大 HP +5。",
+            choices: [{ prompt: "体操与训练", options: [{ text: "我们是伙伴", note: "♪3", level: 3 }, { text: "很努力呢", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "进一步了解她的压力与目标。",
+            choices: [{ prompt: "谈及目标", options: [{ text: "做得很好", note: "♪3", level: 3 }, { text: "别太勉强", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "勾锁强化",
+            note: "提升宫殿钩锁潜行体验。",
+            choices: [{ prompt: "吉祥寺约会", options: [{ text: "很适合你", note: "♪3", level: 3 }, { text: "聊得很开心", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 5,
+            perk: "12/22 前截止",
+            note: "务必在 12/22 前升至 Rank 5。",
+            choices: [{ prompt: "第五阶段对话", options: [{ text: "我也支持你", note: "♪3", level: 3 }, { text: "太好了", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 6,
+            perk: "第三学期解锁",
+            note: "1/13 后于吉祥寺解锁 Rank 6。",
+            choices: [{ prompt: "第三学期再会", options: [{ text: "欢迎回来", note: "♪3", level: 3 }, { text: "一起走下去", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 7,
+            perk: "战斗与协力强化",
+            note: "深化真实自我的认知。",
+            choices: [{ prompt: "直面内心", options: [{ text: "你很坚强", note: "♪3", level: 3 }, { text: "我一直在", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 8,
+            perk: "协力强化",
+            note: "准备迈向更高舞台。",
+            choices: [{ prompt: "赛前对话", options: [{ text: "相信你自己", note: "♪3", level: 3 }, { text: "一定可以的", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 9,
+            perk: "恋人分支",
+            note: "第三学期 Rank 9 可选择告白进入恋人路线。",
+            choices: [
+              {
+                prompt: "直面心意的选择",
+                options: [
+                  { text: "我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "作为重要伙伴支持你（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "第二觉醒 / 第三觉醒",
+            note: "圣杯进化为万德涅斯；2/2 后可解锁第三觉醒。",
+            choices: [{ prompt: "最终觉醒", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "maruki",
+        name: "丸喜拓人",
+        arcana: "顾问官 (Councillor)",
+        category: "support",
+        unlock: "5 月校内开启；11/17 前必须升至 Rank 9（Rank 10 剧情自动）",
+        summary: "P5R 黄金必满协力者！11/17 前未到 Rank 9 会错过第三学期剧情；每次会面额外加 HP/SP 上限。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启 / SP +5",
+            note: "5 月起于实践楼1楼保健室旁；解锁基础咨询。",
+            choices: [{ prompt: "初次咨询", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "咨询特典 / HP +5",
+            note: "提升人格面具合体经验加成。",
+            choices: [
+              { prompt: "“我们达成了约定呢”", options: [{ text: "算是吧", note: "♪2", level: 2 }, { text: "听起来不错", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "雨天不可 / SP +5",
+            note: "雨天无法推进 Rank 3。",
+            choices: [
+              { prompt: "“是新恋情的种子呢”", options: [{ text: "有帮助吗？", note: "♪2", level: 2 }, { text: "当然", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "辛苦了", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "研究分享 / HP +5",
+            note: "推进认知心理学研究。",
+            choices: [
+              { prompt: "“这就是你在研究的吗？”", options: [{ text: "真是宏大的计划", note: "♪2", level: 2 }, { text: "听起来很有趣", note: "♪3", level: 3 }] },
+              { prompt: "电话后续", options: [{ text: "我完全没问题", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 5,
+            perk: "9/19 前上限 Rank 5",
+            note: "9/19 前最高只能升到 Rank 5。",
+            choices: [
+              { prompt: "“看起来真棒！”", options: [{ text: "你说得对", note: "♪3", level: 3 }, { text: "好吃就行", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "我完全不介意", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 6,
+            perk: "SP +5 / 咨询强化",
+            note: "9/20 后开放 Rank 6 以上。",
+            choices: [
+              { prompt: "“再喝一杯？”", options: [{ text: "我可以做到", note: "♪3", level: 3 }, { text: "冷静一点", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "别太激动", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 7,
+            perk: "HP +5 / 深入研究",
+            note: "探讨改心与现实痛苦。",
+            choices: [
+              { prompt: "“你是粉丝吗？”", options: [{ text: "是啊，很有意思", note: "♪3", level: 3 }, { text: "算是吧", note: "♪2", level: 2 }] },
+              { prompt: "“你是说消除它们？”", options: [{ text: "改心吗？", note: "♪3", level: 3 }, { text: "很引人深思", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "SP +5 / 临近截止",
+            note: "抓紧 11/17 前的每一个工作日。",
+            choices: [
+              { prompt: "“祝贺你！”", options: [{ text: "恭喜你", note: "♪3", level: 3 }, { text: "我也很开心", note: "♪3", level: 3 }] },
+              { prompt: "电话后续", options: [{ text: "他是好朋友", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 9,
+            perk: "11/17 前必达 Rank 9",
+            note: "完成 Rank 9 即满足第三学期解锁条件之一。",
+            choices: [{ prompt: "告别与约定", options: [{ text: "一定会再见的", note: "♪3", level: 3 }, { text: "保重身体", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "11/18 剧情自动 Max",
+            note: "11/18 剧情自动升至 Rank 10；解锁维胡·马纳合体。",
+            choices: [{ prompt: "剧情自动达成", options: [{ text: "自动升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "kawakami",
+        name: "川上贞代",
+        arcana: "节制 (Temperance)",
+        category: "support",
+        unlock: "需勇气 Lv.3，用卢布朗座机电话拨打开启（Rank 1）",
+        summary: "全作时间管理神技！Rank 10「特别按摩」让去过宫殿/印象空间的夜晚也能自由外出；需注意部分阶段有金钱与剧情节点。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "摸鱼（Slack Off）",
+            note: "需勇气 Lv.3 与座机电话预约；课上可读书/做道具/睡觉。",
+            choices: [{ prompt: "电话约定", options: [{ text: "成交", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "剧情推进",
+            note: "了解妹妹医疗费借口。",
+            choices: [{ prompt: "“抱歉，得休息一下…”", options: [{ text: "要不要歇会儿？", note: "♪2", level: 2 }, { text: "你刚来呢", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 3,
+            perk: "家务代劳",
+            note: "可委托泡咖啡或洗衣服。",
+            choices: [{ prompt: "“咳嗽停不下来…”", options: [{ text: "你没事吧？", note: "♪3", level: 3 }, { text: "早点回家吧", note: "♪3", level: 3 }, { text: "去看医生了吗？", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "剧情推进",
+            note: "坦白谎言并谈及往事。",
+            choices: [{ prompt: "“排了更多班…”", options: [{ text: "别太拼命了", note: "♪2", level: 2 }, { text: "你还好吗？", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "自由时间",
+            note: "其他老师课堂也可有机会摸鱼。",
+            choices: [{ prompt: "谈及前学生事件", options: [{ text: "我能理解", note: "♪2", level: 2 }, { text: "别自责了", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 6,
+            perk: "剧情推进",
+            note: "监护人索求更多金钱。",
+            choices: [{ prompt: "疲惫不堪时", options: [{ text: "一定要休息", note: "♪3", level: 3 }, { text: "我帮你分担", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "超级家务代劳",
+            note: "可委托制作咖喱与潜行道具。",
+            choices: [{ prompt: "体力透支后", options: [{ text: "快去躺下", note: "♪3", level: 3 }, { text: "听我说", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "决定与监护人正面沟通。",
+            choices: [{ prompt: "重拾教师使命", options: [{ text: "你是个好老师", note: "♪3", level: 3 }, { text: "支持你的决定", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 9,
+            perk: "恋人分支",
+            note: "告别女仆兼职，选择“我喜欢你”进入恋人路线。",
+            choices: [
+              {
+                prompt: "重新出发的告白节点",
+                options: [
+                  { text: "我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "作为学生支持你（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "特别按摩",
+            note: "去过迷宫或印象空间的夜晚也可外出行动！",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "takemi",
+        name: "武见妙",
+        arcana: "死神 (Death)",
+        category: "support",
+        unlock: "四轩茶屋诊所开启；Rank 2 需勇气 Lv.2，Rank 8 需魅力 Lv.4",
+        summary: "携带「死神」人格面具；Rank 5 解锁回蓝贴片，Rank 7 打折；每3天最多升1级，部分事件雨天不可。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "临床试验开启 / 勇气 +1",
+            note: "诊所初诊自动解锁 Rank 1。",
+            choices: [{ prompt: "初次诊察", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "诊所商品扩充 / 需勇气 Lv.2",
+            note: "需勇气 Lv.2；解锁更多药品。",
+            choices: [{ prompt: "临床试验过程", options: [{ text: "没问题", note: "♪2", level: 2 }, { text: "一点也不怕", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "谈及医生过往与诊所流言。",
+            choices: [{ prompt: "听医生讲述", options: [{ text: "流言不可信", note: "♪2", level: 2 }, { text: "你很坚强", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 4,
+            perk: "剧情推进",
+            note: "推进医疗研发线。",
+            choices: [{ prompt: "试验进展", options: [{ text: "希望能成功", note: "♪2", level: 2 }, { text: "相信你", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 5,
+            perk: "药品折扣 / 贴片解禁",
+            note: "解锁回蓝贴片（大气贴片/灵魂贴片），拓荒极实用。",
+            choices: [{ prompt: "药效反馈", options: [{ text: "很有效果", note: "♪3", level: 3 }, { text: "谢谢医生", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "雨天不可",
+            note: "雨天无法触发 Rank 6。",
+            choices: [{ prompt: "诊所风波", options: [{ text: "我来帮你", note: "♪3", level: 3 }, { text: "别退缩", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "全面折扣 / 需魅力 Lv.4",
+            note: "后续需魅力 Lv.4 推进至 Rank 8。",
+            choices: [{ prompt: "寻求真相", options: [{ text: "一起查清楚", note: "♪3", level: 3 }, { text: "交给我", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "需魅力 Lv.4",
+            note: "解决医疗丑闻关键阶段。",
+            choices: [{ prompt: "关键时刻", options: [{ text: "医生没有错", note: "♪3", level: 3 }, { text: "我站在你这边", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 9,
+            perk: "恋人分支 / 雨天不可",
+            note: "雨天不可；选择“我喜欢你”进入恋人路线。",
+            choices: [
+              {
+                prompt: "告白选择节点",
+                options: [
+                  { text: "我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "只是患者与医生（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "爱丽丝合体解禁",
+            note: "死神最高人格面具爱丽丝解禁。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "sojiro",
+        name: "佐仓惣治郎",
+        arcana: "教皇 (Hierophant)",
+        category: "support",
+        unlock: "卢布朗吧台开启；8/21 宫殿期限前卡在 Rank 4，Rank 7 需体贴 MAX",
+        summary: "携带「教皇」人格面具；冲泡咖啡/咖喱可刷好感与 SP 道具，8/21 前锁在 Rank 4，Rank 7 需体贴 MAX。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "卢布朗日常互动开启。",
+            choices: [{ prompt: "吧台对话", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "咖啡基础",
+            note: "学习冲泡咖啡（恢复少量 SP）。",
+            choices: [{ prompt: "研磨度提问", options: [{ text: "中细研磨", note: "♪2", level: 2 }, { text: "细研磨", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "了解惣治郎与双叶的过往。",
+            choices: [{ prompt: "谈及双叶", options: [{ text: "听起来很辛苦", note: "♪2", level: 2 }, { text: "我会照顾好她", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 4,
+            perk: "8/21 前上限 Rank 4",
+            note: "8/21 前无法升至 Rank 5；所需好感点较高，可配合占卜或咖啡。",
+            choices: [{ prompt: "夏休前夜", options: [{ text: "我明白", note: "♪2", level: 2 }, { text: "别太担心", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "8/21 后解锁",
+            note: "双叶宫殿期限（8/21）后继续推进。",
+            choices: [{ prompt: "咖喱食谱与心意", options: [{ text: "已经上瘾了", note: "♪3", level: 3 }, { text: "非常好吃", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "咖啡精通",
+            note: "冲泡咖啡可恢复更多 SP。",
+            choices: [{ prompt: "“多亏了你连接起我们…”", options: [{ text: "这都是你的功劳", note: "♪3", level: 3 }, { text: "太好了", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "需体贴 MAX",
+            note: "需体贴达到最高级（Lv.5）才能推进。",
+            choices: [{ prompt: "“在佐仓家生活如何？”", options: [{ text: "很安心", note: "♪3", level: 3 }, { text: "像家一样", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "应对外部压力与亲戚纠葛。",
+            choices: [{ prompt: "面对麻烦", options: [{ text: "交给我吧", note: "♪3", level: 3 }, { text: "别怕", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "剧情推进",
+            note: "彻底化解心结。",
+            choices: [{ prompt: "父女/家人羁绊", options: [{ text: "太好了", note: "♪3", level: 3 }, { text: "你做得很棒", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "咖喱精通",
+            note: "可制作全队恢复 SP 的顶级咖喱；无恋人路线。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪3", level: 3 }] }]
+          }
+        ]
+      },
+      {
+        id: "yoshida",
+        name: "吉田寅之助",
+        arcana: "太阳 (Sun)",
+        category: "support",
+        unlock: "5/6 后打工牛丼店两次开启；11/13 前必须升满，每周日夜晚涩谷站前",
+        summary: "限时协力者！11/13 后无法再推进，务必提前升满；交涉勒索金钱与高阶人格面具极强，每次升阶加魅力。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "演讲旁听 / 魅力 +3",
+            note: "在牛丼店打工两次后，于周日晚涩谷站前开启。",
+            choices: [{ prompt: "“愿意听我讲演安排吗？”", options: [{ text: "我记下来了", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 2,
+            perk: "交涉增额 / 魅力 +3",
+            note: "交涉时可索要更多金钱或道具。",
+            choices: [
+              { prompt: "“为什么想当政治家？”", options: [{ text: "想提升演讲力", note: "♪2", level: 2 }, { text: "有信念的政治家", note: "♪2", level: 2 }] },
+              { prompt: "电话后续", options: [{ text: "很有帮助", note: "♪2", level: 2 }, { text: "改变了我的看法", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进 / 魅力 +3",
+            note: "探讨政治信念。",
+            choices: [{ prompt: "“什么打动了你？”", options: [{ text: "他的信念", note: "♪2", level: 2 }, { text: "他的口才", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "剧情推进 / 魅力 +3",
+            note: "回忆过往挫折。",
+            choices: [{ prompt: "“亮点是你的怒吼”", options: [{ text: "情不自禁", note: "♪2", level: 2 }, { text: "别忘了初心", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "剧情推进 / 魅力 +3",
+            note: "面对媒体质疑。",
+            choices: [{ prompt: "“重拾自信了吗？”", options: [{ text: "媒体流言不必在意", note: "♪3", level: 3 }, { text: "我觉得是这样", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "剧情推进 / 魅力 +3",
+            note: "探讨年轻人的态度。",
+            choices: [{ prompt: "“作为年轻人你怎么看？”", options: [{ text: "我选择拒绝", note: "♪3", level: 3 }, { text: "顺其自然", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "剧情推进 / 魅力 +3",
+            note: "面临利益诱惑与信念抉择。",
+            choices: [{ prompt: "“为了实现梦想放弃信念…”", options: [{ text: "坚持你的信念", note: "♪3", level: 3 }, { text: "这是艰难的决定", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进 / 魅力 +3",
+            note: "坚持原则赢得尊重。",
+            choices: [{ prompt: "“要开始演讲了”", options: [{ text: "全力以赴吧", note: "♪3", level: 3 }, { text: "有点紧张", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "11/13 前抓紧冲刺 / 魅力 +3",
+            note: "注意截止日期 11/13。",
+            choices: [{ prompt: "“或许是你打动了我”", options: [{ text: "你有改变", note: "♪2", level: 2 }, { text: "太棒了", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "魅力演说 / 修罗合体",
+            note: "更容易与高于主角等级的人格面具缔结契约；解锁修罗。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "mishima",
+        name: "三岛由辉",
+        arcana: "月 (Moon)",
+        category: "support",
+        unlock: "5 月起剧情推进开启；需完成印象空间委托推进等级",
+        summary: "每次升阶无需携带「月」人格面具，但必须先完成三岛推送的印象空间委托；提升全队与后备经验获取。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "剧情开启",
+            note: "5 月初剧情自动开启。",
+            choices: [{ prompt: "怪盗频道起步", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "剧情推进",
+            note: "粉丝网站初步运作。",
+            choices: [{ prompt: "网站运营初期", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 3,
+            perk: "月之热情",
+            note: "需完成 1 个印象空间委托；非雨天；提升战斗经验。",
+            choices: [
+              { prompt: "“好主意吧？”", options: [{ text: "好主意", note: "♪3", level: 3 }, { text: "我已经名草有主", note: "♪2", level: 2 }] },
+              { prompt: "“我们是怪盗团？”", options: [{ text: "说实话吧", note: "♪2", level: 2 }, { text: "不是你的错", note: "♪2", level: 2 }] }
+            ]
+          },
+          {
+            rank: 4,
+            perk: "月之执念",
+            note: "需累计完成 2 个委托；提升后备队员经验获取。",
+            choices: [{ prompt: "“吃牛排怎么样？”", options: [{ text: "牛排听起来不错", note: "♪3", level: 3 }, { text: "我喜欢甜点", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "剧情推进",
+            note: "需累计完成 3 个委托。",
+            choices: [{ prompt: "网站热度攀升", options: [{ text: "别被冲昏头", note: "♪2", level: 2 }, { text: "注意分寸", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "井之头公园解锁 / 非雨天",
+            note: "需累计完成 4 个委托；非雨天。",
+            choices: [{ prompt: "“传闻总是乱传…”", options: [{ text: "干得不错", note: "♪2", level: 2 }, { text: "别太得意", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "经验加成强化 / 非雨天",
+            note: "需累计完成 5 个委托；非雨天。",
+            choices: [{ prompt: "“你很可靠呢”", options: [{ text: "你很可靠", note: "♪3", level: 3 }, { text: "我们要赢什么？", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "需完成委托 / 非雨天",
+            note: "需累计完成 7 个委托；非雨天。",
+            choices: [{ prompt: "反思过度狂热", options: [{ text: "你醒悟了", note: "♪3", level: 3 }, { text: "还来得及", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "需累计完成 8 个委托",
+            note: "认清自我价值。",
+            choices: [{ prompt: "找回本心", options: [{ text: "这才像你", note: "♪3", level: 3 }, { text: "一起加油", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "大天使合体解禁",
+            note: "需累计完成 10 个委托；非雨天；解锁大天使。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "iwai",
+        name: "岩井宗久",
+        arcana: "倒悬者 (Hanged Man)",
+        category: "support",
+        unlock: "5/6 后涉谷模型枪店开启；Rank 7 需勇气 Lv.5",
+        summary: "携带「倒悬者」人格面具；解锁枪械改装与折扣，Rank 7 需勇气 MAX 并完成印象空间委托。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "枪械改装基础",
+            note: "完成取回包裹事件后开启模型枪改装。",
+            choices: [{ prompt: "初次改装", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "剧情推进",
+            note: "察觉岩井与黑道过往。",
+            choices: [{ prompt: "“该怎么办才好？”", options: [{ text: "该怎么办呢？", note: "♪2", level: 2 }, { text: "感冒好点了吗？", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "达成交易与默契。",
+            choices: [{ prompt: "“我们有约定吧”", options: [{ text: "我们有约定的", note: "♪3", level: 3 }, { text: "早就知道你不是普通人", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "剧情推进",
+            note: "谈及薰与过往纠葛。",
+            choices: [{ prompt: "“我同意”", options: [{ text: "我同意", note: "♪2", level: 2 }, { text: "很合理", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "枪械改装折扣",
+            note: "改装枪械费用降低。",
+            choices: [{ prompt: "“我还是留下来玩枪吧”", options: [{ text: "我留下来玩枪", note: "♪3", level: 3 }, { text: "你真逊", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 6,
+            perk: "剧情推进",
+            note: "探讨与薰的相处。",
+            choices: [{ prompt: "“请客买点东西吧”", options: [{ text: "请我们吃东西吧", note: "♪3", level: 3 }, { text: "同龄人更好沟通", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 7,
+            perk: "需勇气 Lv.5 + 委托",
+            note: "需勇气 MAX；对话后解锁印象空间委托《阴影里的可疑交易》。",
+            choices: [
+              { prompt: "委托前对话", options: [{ text: "全都是为了岩井", note: "♪3", level: 3 }, { text: "我想帮你", note: "♪2", level: 2 }] },
+              { prompt: "完成委托后", options: [{ text: "报酬丰厚就行", note: "♪3", level: 3 }, { text: "可以考虑", note: "♪3", level: 3 }] }
+            ]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "解决幕后威胁。",
+            choices: [{ prompt: "收尾阶段", options: [{ text: "明白", note: "♪2", level: 2 }, { text: "没问题", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "剧情推进",
+            note: "父子坦诚沟通。",
+            choices: [{ prompt: "“薰是个坚强的孩子”", options: [{ text: "薰意志很坚强", note: "♪3", level: 3 }, { text: "真是酷小子", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "顶级改装 / 巴风特合体",
+            note: "解锁最高级枪械改装与巴风特合体。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "shinya",
+        name: "织田信也",
+        arcana: "塔 (Tower)",
+        category: "support",
+        unlock: "9/4 后完成印象空间委托开启，秋叶原电玩城夜间",
+        summary: "携带「塔」人格面具；解锁「击倒射击」与「枪弹冰雹」等强力枪械技能，可顺带提升体贴。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "击倒射击（Down Shot）",
+            note: "消耗整匣子弹击倒阴影；每次升阶附带体贴提升。",
+            choices: [{ prompt: "送出预告信", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "枪弹冰雹",
+            note: "伏击开战时可枪械扫射。",
+            choices: [{ prompt: "电玩城对话", options: [{ text: "别拿我和你比", note: "♪3", level: 3 }, { text: "我也是这么想的", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "谈及小学“战争”与母亲。",
+            choices: [{ prompt: "午餐谈心", options: [{ text: "别自责", note: "♪2", level: 2 }, { text: "我陪着你", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "剧情推进",
+            note: "遭遇强敌后的不甘。",
+            choices: [{ prompt: "“你看起来很开心”", options: [{ text: "你看起来很开心", note: "♪3", level: 3 }, { text: "武见医生会帮忙", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "弹药袋",
+            note: "增加枪械最大装弹数。",
+            choices: [{ prompt: "“去讨回公道吧”", options: [{ text: "去讨回公道", note: "♪2", level: 2 }, { text: "没错", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 6,
+            perk: "剧情推进",
+            note: "完成母亲相关委托后推进。",
+            choices: [{ prompt: "“说明你成熟了”", options: [{ text: "说明你成熟了", note: "♪3", level: 3 }, { text: "真为你高兴", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 7,
+            perk: "剧情推进",
+            note: "强化心态与技巧。",
+            choices: [{ prompt: "训练对话", options: [{ text: "进步很大", note: "♪3", level: 3 }, { text: "继续保持", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "学会正确面对胜负。",
+            choices: [{ prompt: "成长对话", options: [{ text: "你变强了", note: "♪3", level: 3 }, { text: "很帅气", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "剧情推进",
+            note: "迎来最终挑战。",
+            choices: [{ prompt: "赛前对话", options: [{ text: "全力以赴", note: "♪3", level: 3 }, { text: "相信你", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 10,
+            perk: "顶级枪械技能 / 摩罗合体",
+            note: "解锁摩罗合体与满级枪械支援。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      },
+      {
+        id: "ohya",
+        name: "大宅一子",
+        arcana: "恶魔 (Devil)",
+        category: "support",
+        unlock: "6/22 后新宿酒吧开启（Rank 1）",
+        summary: "携带「恶魔」人格面具；主要影响宫殿警戒度上升速度，交涉时也有辅助效果，Rank 9 可选恋人路线。",
+        ranks: [
+          {
+            rank: 1,
+            perk: "警戒度减缓基础",
+            note: "新宿酒吧开启；降低宫殿警戒度增长。",
+            choices: [{ prompt: "电话后续", options: [{ text: "任意选项", note: "♪0", level: 0 }] }]
+          },
+          {
+            rank: 2,
+            perk: "剧情推进",
+            note: "采访与情报收集。",
+            choices: [{ prompt: "采访对话", options: [{ text: "三岛也许知道", note: "♪2", level: 2 }, { text: "是为了写报道", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 3,
+            perk: "剧情推进",
+            note: "调查过往事件。",
+            choices: [{ prompt: "调查对话", options: [{ text: "别太早下定论", note: "♪2", level: 2 }, { text: "小心调查", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 4,
+            perk: "警戒度减缓强化",
+            note: "进一步降低警戒度。",
+            choices: [{ prompt: "酒吧谈话", options: [{ text: "任意选项", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 5,
+            perk: "剧情推进",
+            note: "逼近事件核心。",
+            choices: [{ prompt: "深入调查", options: [{ text: "注意安全", note: "♪2", level: 2 }, { text: "我来帮你", note: "♪3", level: 3 }] }]
+          },
+          {
+            rank: 6,
+            perk: "剧情推进",
+            note: "面对压力与真相。",
+            choices: [{ prompt: "真相线索", options: [{ text: "坚持下去", note: "♪2", level: 2 }, { text: "值得的", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 7,
+            perk: "警戒度大幅减缓",
+            note: "宫殿潜行更宽松。",
+            choices: [{ prompt: "关键节点", options: [{ text: "我支持你", note: "♪2", level: 2 }, { text: "很可靠", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 8,
+            perk: "剧情推进",
+            note: "迎击幕后黑手。",
+            choices: [{ prompt: "决战前夜", options: [{ text: "一定会赢", note: "♪3", level: 3 }, { text: "交给我们", note: "♪2", level: 2 }] }]
+          },
+          {
+            rank: 9,
+            perk: "恋人分支",
+            note: "选择“我喜欢你”进入恋人路线。",
+            choices: [
+              {
+                prompt: "告白选择节点",
+                options: [
+                  { text: "我喜欢你（恋人）", note: "♪0 恋人", level: 3, romance: true },
+                  { text: "作为搭档支持你（挚友）", note: "♪0 挚友", level: 0 }
+                ]
+              }
+            ]
+          },
+          {
+            rank: 10,
+            perk: "别西卜合体解禁",
+            note: "解锁恶魔最高人格面具别西卜。",
+            choices: [{ prompt: "最终结局对话", options: [{ text: "任意选项均可升满", note: "♪0", level: 0 }] }]
+          }
+        ]
+      }
+    ];
+
+    // ==================== 送礼偏好数据库 ====================
+    const GIFT_DATA = [
+      {
+        name: "高卷杏",
+        gender: "female",
+        locationTag: "涩谷地下商场 / 新宿",
+        gifts: [
+          "【♪3 最佳】心形戒指（涩谷地下商场·珠宝店｜88,000円）",
+          "【♪3 最佳】卡斯提拉蛋糕（涩谷地下商场·甜品店｜1,500円）",
+          "【♪3 最佳】名牌香水（涩谷地下商场·化妆品店｜7,800円）",
+          "【♪3 最佳】玫瑰花束（新宿·花店｜3,200円）",
+          "【♪2 次选】巧克力松露礼盒（涩谷地下商场｜2,800円）"
+        ]
+      },
+      {
+        name: "新岛真",
+        gender: "female",
+        locationTag: "新宿杂货店 / 涩谷地下商场",
+        gifts: [
+          "【♪3 最佳】书套（新宿·杂货店｜3,000円）",
+          "【♪3 最佳】高级钢笔（新宿·杂货店｜8,000円）",
+          "【♪3 最佳】古典乐精选集（涩谷地下商场·唱片店｜3,000円）",
+          "【♪3 最佳】迷你仙人掌（涩谷地下商场·花店｜1,600円）",
+          "【♪2 次选】运动手表（涩谷地下商场·珠宝店｜12,000円）"
+        ]
+      },
+      {
+        name: "佐仓双叶",
+        gender: "female",
+        locationTag: "秋叶原电器街 / 扭蛋店",
+        gifts: [
+          "【♪3 最佳】地方吉祥物手办（秋叶原·手办店｜3,600円）",
+          "【♪3 最佳】高端降噪耳机（秋叶原·电器店｜24,800円）",
+          "【♪3 最佳】全套零食大礼包（秋叶原·超市｜1,800円）",
+          "【♪2 次选】迷你仙人掌（涩谷地下商场·花店｜1,600円）"
+        ]
+      },
+      {
+        name: "奥村春",
+        gender: "female",
+        locationTag: "新宿花店 / 涩谷地下商场",
+        gifts: [
+          "【♪3 最佳】玻璃花瓶（新宿·杂货店｜4,400円）",
+          "【♪3 最佳】高级红茶礼盒（涩谷地下商场·超市｜2,800円）",
+          "【♪3 最佳】园艺用铲子套装（新宿·花店｜2,200円）",
+          "【♪2 次选】玫瑰花束（新宿·花店｜3,200円）"
+        ]
+      },
+      {
+        name: "武见妙",
+        gender: "female",
+        locationTag: "四轩茶屋 / 涩谷地下商场",
+        gifts: [
+          "【♪3 最佳】黑色马克杯（四轩茶屋·二手杂货店｜1,800円）",
+          "【♪3 最佳】迷你仙人掌（涩谷地下商场·花店｜1,600円）",
+          "【♪3 最佳】古典乐精选集（涩谷地下商场·唱片店｜3,000円）",
+          "【♪2 次选】银手镯（涩谷地下商场·珠宝店｜14,000円）"
+        ]
+      },
+      {
+        name: "川上贞代 & 东乡一二三",
+        gender: "female",
+        locationTag: "涩谷 / 新宿 / 秋叶原",
+        gifts: [
+          "川上【♪3】：名牌香水（涩谷化妆品店） / 复古钢笔（新宿杂货店）",
+          "川上【♪3】：心形项链（涩谷地下商场·珠宝店｜68,000円）",
+          "一二三【♪3】：日式折扇（新宿杂货店） / 古典乐精选集（涩谷唱片店）",
+          "一二三【♪3】：高级抹茶礼盒（涩谷地下商场·超市｜3,000円）"
+        ]
+      },
+      {
+        name: "芳泽霞",
+        gender: "female",
+        locationTag: "涩谷地下商场 / 新宿",
+        gifts: [
+          "【♪3 最佳】心形戒指（涩谷地下商场·珠宝店｜88,000円）",
+          "【♪3 最佳】玫瑰花束（新宿·花店｜3,200円）",
+          "【♪3 最佳】高级运动毛巾（涩谷地下商场·运动店｜2,500円）",
+          "【♪2 次选】卡斯提拉蛋糕（涩谷地下商场·甜品店｜1,500円）"
+        ]
+      },
+      {
+        name: "坂本龙司 & 喜多川祐介",
+        gender: "male",
+        locationTag: "涩谷 / 新宿 / 吉祥寺",
+        gifts: [
+          "龙司【♪3】：蛋白质粉（涩谷健身房前商店｜3,200円）",
+          "龙司【♪3】：运动手表（涩谷地下商场·珠宝店｜12,000円）",
+          "祐介【♪3】：日式折扇（新宿·杂货店｜4,800円）",
+          "祐介【♪3】：高级抹茶点心礼盒（涩谷地下商场｜3,000円）"
+        ]
+      }
+    ];
+
+    // ==================== 五维提升数据库 ====================
+    const STATS_DATA = [
+      {
+        stat: "知识 (Knowledge)",
+        locks: "女教皇 Lv.3 ｜ 正义 Lv.3→Lv.4 ｜ 星 Max(Lv.5)",
+        thresholds: ["Lv.2: 34pt", "Lv.3: 82pt", "Lv.4: 126pt", "Lv.5: 192pt"],
+        methods: [
+          "雨天前往涩谷「家庭餐厅」点最便宜咖啡学习（雨天额外 +1 音符）",
+          "电车通勤读书 + 课堂提问全对（完全不消耗时间段，前期必拿）",
+          "卢布朗咖啡店桌上「填字游戏」定期刷新（答对 +♪1 且不耗时间）",
+          "考前与伙伴在卢布朗温习（全员好感 + 知识大幅提升）"
+        ]
+      },
+      {
+        stat: "勇气 (Guts)",
+        locks: "死神 Lv.2 ｜ 节制开启 Lv.3 ｜ 刑死者 Lv.4",
+        thresholds: ["Lv.2: 11pt", "Lv.3: 29pt", "Lv.4: 57pt", "Lv.5: 113pt"],
+        methods: [
+          "死神（武见妙）每次推进临床试验固定加勇气（前期一举两得）",
+          "涩谷中央大街「大汉堡挑战」（成功一次性大幅提升勇气及多项属性）",
+          "租借 DVD《X档案夹》或阅读《海盗传说》《胆量修练法》",
+          "去涩谷电影院观看动作/惊悚类大片"
+        ]
+      },
+      {
+        stat: "灵巧 (Proficiency)",
+        locks: "皇帝 Lv.4 ｜ 塔开启 Lv.2 ｜ 女皇 Max(Lv.5)",
+        thresholds: ["Lv.2: 12pt", "Lv.3: 34pt", "Lv.4: 60pt", "Lv.5: 87pt"],
+        methods: [
+          "夜晚在自己房间工作台制作「潜行道具/开锁工具」（雨天概率暴击）",
+          "四轩茶屋「击球中心」打棒球（夜晚解锁后不限次数练习，全垒打收益高）",
+          "涉谷牛丼店打工（客满高峰期正确记住全部点单额外加灵巧）",
+          "吉祥寺玩飞镖游戏（提升队友换手等级的同时增加灵巧）"
+        ]
+      },
+      {
+        stat: "体贴 (Kindness)",
+        locks: "恋爱 Lv.2 ｜ 隐士 Lv.4 ｜ 教皇 Max(Lv.5)",
+        thresholds: ["Lv.2: 14pt", "Lv.3: 44pt", "Lv.4: 91pt", "Lv.5: 136pt"],
+        methods: [
+          "【不耗时间】定期给房间「观叶植物」施肥（新宿花店买 3000円 超级营养剂直接 +♪3！）",
+          "涩谷花店打工（按客人需求配对花束额外 +♪1 体贴）或新宿酒吧打工",
+          "推进「教皇（惣治郎）」与「塔（织田信也）」Coop 事件",
+          "阅读《动物低语者》或租赁家庭温情类 DVD"
+        ]
+      },
+      {
+        stat: "魅力 (Charm)",
+        locks: "星 Lv.3 ｜ 死神 Lv.4 ｜ 女教皇 Max(Lv.5)",
+        thresholds: ["Lv.2: 6pt", "Lv.3: 52pt", "Lv.4: 92pt", "Lv.5: 132pt"],
+        methods: [
+          "每周一、周四前往四轩茶屋「公共澡堂」泡澡（雨天或药浴直接 +♪3）",
+          "推进夜晚「太阳（吉田寅之助）」与「恶魔（大宅一子）」Coop",
+          "周日前往涩谷地下通道饮料摊购买「青汁」（5000円，不耗时间随机提升五维）",
+          "女仆咖啡厅消费点单或观看浪漫爱情电影"
+        ]
+      }
+    ];
+
+    // ==================== 渲染逻辑 ====================
+    function renderCoop(filter = "all", keyword = "") {
+      const listEl = document.getElementById("coopList");
+      const q = keyword.trim().toLowerCase();
+
+      const filtered = COOP_DATA.filter(item => {
+        const matchCat = filter === "all" || item.category === filter;
+        const matchQuery =
+          !q ||
+          item.name.toLowerCase().includes(q) ||
+          item.arcana.toLowerCase().includes(q) ||
+          item.summary.toLowerCase().includes(q) ||
+          item.ranks.some(r =>
+            r.perk.toLowerCase().includes(q) ||
+            r.note.toLowerCase().includes(q) ||
+            r.choices.some(c =>
+              c.prompt.toLowerCase().includes(q) ||
+              c.options.some(o => o.text.toLowerCase().includes(q) || o.note.toLowerCase().includes(q))
+            )
+          );
+        return matchCat && matchQuery;
+      });
+
+      if (!filtered.length) {
+        listEl.innerHTML = `<div class="p5-card"><p>没有找到匹配的 Coop 角色或对话选项，试试换个关键词吧。</p></div>`;
+        return;
+      }
+
+      listEl.innerHTML = filtered.map((item, idx) => {
+        const isFirst = idx === 0;
+        const rankChips = item.ranks.map(r =>
+          `<button class="rank-jump-btn" type="button" onclick="jumpToRank(event, '${item.id}', ${r.rank})">R${r.rank}</button>`
+        ).join("");
+
+        const rankCards = item.ranks.map(r => {
+          const choiceHtml = r.choices.map(ch => {
+            const optsHtml = ch.options.map(op => {
+              const cls = ["opt-chip"];
+              if (op.level === 3) cls.push("best");
+              if (op.romance) cls.push("romance");
+              const pillCls = op.level === 3 ? "note-3" : (op.level === 2 ? "note-2" : "note-0");
+              return `<span class="${cls.join(" ")}"><span class="note-pill ${pillCls}">${op.note}</span>${op.text}</span>`;
+            }).join("");
+
+            return `
+              <li class="choice-row">
+                <span class="choice-prompt">对话节点：${ch.prompt}</span>
+                <div class="choice-opts">${optsHtml}</div>
+              </li>
+            `;
+          }).join("");
+
+          return `
+            <div class="rank-card" id="rank-${item.id}-${r.rank}">
+              <div class="rank-top">
+                <span class="rank-badge">RANK ${r.rank}</span>
+                <span class="rank-perk">${r.perk}</span>
+              </div>
+              <p class="rank-note">${r.note}</p>
+              <ul class="choice-list">${choiceHtml}</ul>
+            </div>
+          `;
+        }).join("");
+
+        return `
+          <article class="coop-item ${isFirst ? "open" : ""}" id="coop-${item.id}">
+            <div class="coop-header" onclick="toggleCoopItem('${item.id}')">
+              <div class="coop-title-group">
+                <span class="arcana-tag">${item.arcana}</span>
+                <h3 class="char-name">${item.name}</h3>
+                <span class="unlock-badge">${item.unlock}</span>
+              </div>
+              <span class="expand-indicator" id="ind-${item.id}">${isFirst ? "收起 Rank 1~10 ▲" : "展开 Rank 1~10 ▼"}</span>
+            </div>
+            <div class="coop-body">
+              <p class="coop-summary">★ ${item.summary}</p>
+              <div class="rank-quick-bar">
+                <span style="font-size:12px;color:var(--p5-gray);align-self:center;margin-right:4px;">快速定位：</span>
+                ${rankChips}
+              </div>
+              <div class="rank-grid">${rankCards}</div>
+            </div>
+          </article>
+        `;
+      }).join("");
+    }
+
+    function toggleCoopItem(id) {
+      const el = document.getElementById(`coop-${id}`);
+      const ind = document.getElementById(`ind-${id}`);
+      if (!el) return;
+      el.classList.toggle("open");
+      if (ind) {
+        ind.textContent = el.classList.contains("open") ? "收起 Rank 1~10 ▲" : "展开 Rank 1~10 ▼";
+      }
+    }
+
+    function jumpToRank(event, id, rankNum) {
+      event.stopPropagation();
+      const coopEl = document.getElementById(`coop-${id}`);
+      const ind = document.getElementById(`ind-${id}`);
+      if (coopEl && !coopEl.classList.contains("open")) {
+        coopEl.classList.add("open");
+        if (ind) ind.textContent = "收起 Rank 1~10 ▲";
+      }
+
+      const target = document.getElementById(`rank-${id}-${rankNum}`);
+      if (target) {
+        document.querySelectorAll(`#coop-${id} .rank-card`).forEach(c => c.classList.remove("highlighted"));
+        target.classList.add("highlighted");
+        target.scrollIntoView({ behavior: "smooth", block: "center" });
+        setTimeout(() => target.classList.remove("highlighted"), 1600);
+      }
+    }
+
+    function renderGift(filter = "all", keyword = "") {
+      const grid = document.getElementById("giftGrid");
+      const q = keyword.trim().toLowerCase();
+
+      const filtered = GIFT_DATA.filter(item => {
+        const matchGender = filter === "all" || item.gender === filter;
+        const matchText =
+          !q ||
+          item.name.toLowerCase().includes(q) ||
+          item.locationTag.toLowerCase().includes(q) ||
+          item.gifts.some(g => g.toLowerCase().includes(q));
+        return matchGender && matchText;
+      });
+
+      grid.innerHTML = filtered
+        .map(
+          item => `
+        <article class="p5-card">
+          <div class="card-tag">${item.locationTag}</div>
+          <h3 class="card-title">${item.name}</h3>
+          <ul class="card-list">
+            ${item.gifts.map(g => `<li>${g}</li>`).join("")}
+          </ul>
+        </article>
+      `
+        )
+        .join("");
+    }
+
+    function renderStats() {
+      const grid = document.getElementById("statsGrid");
+      grid.innerHTML = STATS_DATA.map(
+        item => `
+        <article class="p5-card">
+          <div class="card-tag">SOCIAL STAT // 五维路线</div>
+          <h3 class="card-title">${item.stat}</h3>
+          <div class="card-meta">★ 关键解锁门槛：${item.locks}</div>
+          <div class="threshold-row">
+            ${item.thresholds.map(t => `<span class="lv-chip">${t}</span>`).join("")}
+          </div>
+          <ul class="card-list">
+            ${item.methods.map(m => `<li>${m}</li>`).join("")}
+          </ul>
+        </article>
+      `
+      ).join("");
+    }
+
+    // ==================== 首页字符动效与交互 ====================
+    const mainBtn = document.getElementById("p5Btn");
+    const mainWrapper = document.getElementById("p5BtnWrapper");
+    const phrases = [
+      "TAKE YOUR HEART",
+      "ALL-OUT ATTACK",
+      "SHOW ME YOUR TRUE FORM",
+      "LOOKING COOL JOKER"
+    ];
+    let phraseIdx = 0;
+
+    function buildP5Chars(text) {
+      mainBtn.dataset.text = text;
+      mainBtn.innerHTML = "";
+      [...text].forEach((ch, idx) => {
+        if (ch === " ") {
+          const space = document.createElement("span");
+          space.style.display = "inline-block";
+          space.style.width = "12px";
+          mainBtn.appendChild(space);
+          return;
+        }
+        const span = document.createElement("span");
+        span.className = "p5-char";
+        span.textContent = ch;
+
+        const seed = Math.sin((idx + 1) * 12.9898) * 43758.5453;
+        const frac = seed - Math.floor(seed);
+        span.style.setProperty("--rot", ((frac - 0.5) * 14).toFixed(1) + "deg");
+        span.style.setProperty("--ty", (((idx % 3) - 1) * 2.5).toFixed(1) + "px");
+        span.style.setProperty("--sc", (0.94 + frac * 0.14).toFixed(2));
+
+        if (idx % 3 === 1) span.classList.add("invert-on-hover");
+        mainBtn.appendChild(span);
+      });
+    }
+
+    function cycleMainPhrase() {
+      phraseIdx = (phraseIdx + 1) % phrases.length;
+      triggerSlash();
+      buildP5Chars(phrases[phraseIdx]);
+    }
+
+    mainBtn.addEventListener("click", () => {
+      mainWrapper.style.transform = "skewX(-12deg) scale(1.08)";
+      triggerSlash();
+      setTimeout(() => {
+        mainWrapper.style.transform = "skewX(-12deg) scale(1)";
+      }, 130);
+    });
+
+    document.querySelectorAll(".p5-mini-btn").forEach(btn => {
+      btn.addEventListener("mouseenter", () => {
+        const phrase = btn.dataset.phrase;
+        if (phrase) buildP5Chars(phrase);
+      });
+      btn.addEventListener("mouseleave", () => {
+        buildP5Chars(phrases[phraseIdx]);
+      });
+    });
+
+    function triggerSlash() {
+      const flash = document.getElementById("slashFlash");
+      flash.classList.remove("boom");
+      void flash.offsetWidth;
+      flash.classList.add("boom");
+    }
+
+    function switchView(viewName) {
+      triggerSlash();
+      document.querySelectorAll(".view-section").forEach(sec => sec.classList.remove("active"));
+      const targetSec = document.getElementById(`view-${viewName}`);
+      if (targetSec) {
+        targetSec.classList.add("active");
+      }
+
+      document.querySelectorAll(".nav-pill").forEach(pill => {
+        pill.classList.toggle("active", pill.dataset.target === viewName);
+      });
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+
+    window.switchView = switchView;
+    window.cycleMainPhrase = cycleMainPhrase;
+    window.toggleCoopItem = toggleCoopItem;
+    window.jumpToRank = jumpToRank;
+
+    // 绑定筛选与实时搜索
+    let currentCoopFilter = "all";
+    document.getElementById("coopFilters").addEventListener("click", e => {
+      if (!e.target.classList.contains("filter-chip")) return;
+      document.querySelectorAll("#coopFilters .filter-chip").forEach(c => c.classList.remove("active"));
+      e.target.classList.add("active");
+      currentCoopFilter = e.target.dataset.filter;
+      renderCoop(currentCoopFilter, document.getElementById("coopSearch").value);
+    });
+
+    document.getElementById("coopSearch").addEventListener("input", e => {
+      renderCoop(currentCoopFilter, e.target.value);
+    });
+
+    let currentGiftFilter = "all";
+    document.getElementById("giftFilters").addEventListener("click", e => {
+      if (!e.target.classList.contains("filter-chip")) return;
+      document.querySelectorAll("#giftFilters .filter-chip").forEach(c => c.classList.remove("active"));
+      e.target.classList.add("active");
+      currentGiftFilter = e.target.dataset.filter;
+      renderGift(currentGiftFilter, document.getElementById("giftSearch").value);
+    });
+
+    document.getElementById("giftSearch").addEventListener("input", e => {
+      renderGift(currentGiftFilter, e.target.value);
+    });
+
+    // 初始化页面
+    buildP5Chars(phrases[0]);
+    renderCoop();
+    renderGift();
+    renderStats();
+  </script>
+</body>
+</html>
